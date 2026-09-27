@@ -4113,10 +4113,11 @@ function bind(){
     ddBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
   Array.prototype.forEach.call(ddMenu.querySelectorAll('.dd-opt'), function(opt){
-    opt.addEventListener('click', function(){
+    opt.addEventListener('click', function(e){
+      if(e && e.stopPropagation) e.stopPropagation();
       state.filter.sort = opt.dataset.v;
+      closeDD();                  /* 先收菜单 */
       syncSortUI();
-      closeDD();
       renderGallery();
     });
   });
@@ -4132,10 +4133,13 @@ function bind(){
     gBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
   Array.prototype.forEach.call(gMenu.querySelectorAll('.dd-opt'), function(opt){
-    opt.addEventListener('click', function(){
-      try{ localStorage.setItem('layout.gridCols', String(Number(opt.dataset.v) || 0)); }catch(e){}
-      applyGridCols();
-      closeDD();
+    opt.addEventListener('click', function(e){
+      if(e && e.stopPropagation) e.stopPropagation();
+      closeDD();                    /* 先收菜单：即使后面重绘出错也不会卡在展开态 */
+      try{
+        localStorage.setItem('layout.gridCols', String(Number(opt.dataset.v) || 0));
+      }catch(err){}
+      try{ applyGridCols(); }catch(err){}
     });
   });
   applyGridCols();
