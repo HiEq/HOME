@@ -988,6 +988,21 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
             <button class="dd-opt" role="menuitem" data-v="az">按标题排序</button>
           </div>
         </div>
+        <div class="dd" id="gridDD">
+          <button class="dd-btn" id="gridBtn" aria-haspopup="true" aria-expanded="false" title="显示选项">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
+            <span id="gridLabel">自动排列</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 9l7 7 7-7"/></svg>
+          </button>
+          <div class="dd-menu" id="gridMenu" role="menu">
+            <button class="dd-opt" role="menuitem" data-v="0">自动排列</button>
+            <button class="dd-opt" role="menuitem" data-v="2">每行 2 列</button>
+            <button class="dd-opt" role="menuitem" data-v="3">每行 3 列</button>
+            <button class="dd-opt" role="menuitem" data-v="4">每行 4 列</button>
+            <button class="dd-opt" role="menuitem" data-v="5">每行 5 列</button>
+            <button class="dd-opt" role="menuitem" data-v="6">每行 6 列</button>
+          </div>
+        </div>
         <div class="count" id="count"></div>
       </div>
     </div>
@@ -1356,6 +1371,7 @@ var EN = {
   '退出管理模式':'Exit admin',
   /* 页脚 */
   'Cloudflare Pages':'Cloudflare Pages', '友情链接':'Friend links',
+  '自动排列':'Auto layout', '每行 {n} 列':'{n} per row', '显示选项':'Display options',
   '厂商目录清单':'Catalog',
   '杂图':'Misc', '{items} 张杂图 · 点击查看大图':'{items} images · click to view',
   '全部列表':'All images', '滚动墙':'Scroll wall',
@@ -3905,6 +3921,20 @@ function exportManifest(){
   toast('已导出 gallery.json，可直接提交到仓库根目录');
 }
 
+/* 网格显示规格：每行几列（0 = 自动适配），选择存在本机 */
+function applyGridCols(){
+  var g = $('grid');
+  if(!g) return;
+  var n = parseInt(lsGet('layout.gridCols', '0'), 10) || 0;
+  if(n >= 2 && n <= 8) g.style.gridTemplateColumns = 'repeat(' + n + ', 1fr)';
+  else{ n = 0; g.style.gridTemplateColumns = ''; }
+  var lbl = $('gridLabel');
+  if(lbl) lbl.textContent = n ? fmtTpl(t('每行 {n} 列'), {n: n}) : t('自动排列');
+  var menu = $('gridMenu');
+  if(menu) Array.prototype.forEach.call(menu.querySelectorAll('.dd-opt'), function(o){
+    o.classList.toggle('is-on', Number(o.dataset.v) === n);
+  });
+}
 /* ---------- 事件绑定 ---------- */
 /* ---------- 吸顶/几何同步（模块级：renderGallery、route 也需调用） ----------
    融合态（顶栏+标签栏合体、底边收方角）只在 Layout 页成立；
@@ -4037,7 +4067,12 @@ function bind(){
   });
   /* 排序下拉：自绘液态玻璃菜单 */
   var ddBtn = $('sortBtn'), ddMenu = $('sortMenu');
-  function closeDD(){ ddMenu.classList.remove('is-open'); ddBtn.setAttribute('aria-expanded', 'false'); }
+  function closeDD(){
+    ddMenu.classList.remove('is-open'); ddBtn.setAttribute('aria-expanded', 'false');
+    var gM = $('gridMenu'), gB = $('gridBtn');
+    if(gM) gM.classList.remove('is-open');
+    if(gB) gB.setAttribute('aria-expanded', 'false');
+  }
   function syncSortUI(){
     $('sortLabel').textContent = (ddMenu.querySelector('.dd-opt[data-v="' + state.filter.sort + '"]') || {}).textContent || '最新在前';
     Array.prototype.forEach.call(ddMenu.querySelectorAll('.dd-opt'), function(o){
@@ -4059,6 +4094,23 @@ function bind(){
   });
   document.addEventListener('click', closeDD);   /* 点击菜单以外收起 */
   syncSortUI();
+
+  /* 显示选项：图片以每行几列排布（0 = 自动），选择记在本机 */
+  var gBtn = $('gridBtn'), gMenu = $('gridMenu');
+  gBtn.addEventListener('click', function(e){
+    e.stopPropagation();
+    closeDD();
+    var open = gMenu.classList.toggle('is-open');
+    gBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  Array.prototype.forEach.call(gMenu.querySelectorAll('.dd-opt'), function(opt){
+    opt.addEventListener('click', function(){
+      try{ localStorage.setItem('layout.gridCols', String(Number(opt.dataset.v) || 0)); }catch(e){}
+      applyGridCols();
+      closeDD();
+    });
+  });
+  applyGridCols();
   $('btnSearch').addEventListener('click', function(){
     if(location.hash.indexOf('#/layout') !== 0){ location.hash = '#/layout'; }
     setTimeout(function(){ $('q').focus(); $('q').select(); }, 80);
