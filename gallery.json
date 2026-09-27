@@ -20,71 +20,67 @@
   "items": [
     {
       "id": "imuju7mdtdaqg7",
-      "coll": "dieshot",
       "title": "Pensando Elba DPU",
       "desc": "TSMC 7nm",
       "tags": [
         "AMD"
       ],
+      "src": "images/dieshot/amd/muju7mdu-Pensando-Elba-DPU-15.68x12.78x0.77mm.jpg",
+      "thumb": "images/dieshot/amd/muju7mdu-Pensando-Elba-DPU-15.68x12.78x0.77mm.thumb.jpg",
+      "file": "images/dieshot/amd/muju7mdu-Pensando-Elba-DPU-15.68x12.78x0.77mm.jpg",
       "name": "Pensando Elba DPU 15.68x12.78x0.77mm...jpg",
       "size": 4472954,
-      "addedAt": "2026-09-27T13:11:21.617Z",
       "w": 7837,
       "h": 6384,
-      "src": "images/dieshot/amd/muju7mdu-Pensando-Elba-DPU-15.68x12.78x0.77mm.jpg",
-      "file": "images/dieshot/amd/muju7mdu-Pensando-Elba-DPU-15.68x12.78x0.77mm.jpg",
-      "thumb": "images/dieshot/amd/muju7mdu-Pensando-Elba-DPU-15.68x12.78x0.77mm.thumb.jpg"
+      "addedAt": "2026-09-27T13:11:21.617Z"
     },
     {
       "id": "imuju2u21haf2o",
-      "coll": "dieshot",
       "title": "Longxin 3A6000",
       "desc": "Unknow",
       "tags": [
         "Longxin"
       ],
+      "src": "images/dieshot/longxin/muju2u21-longxin-3a6000-9.98x11.59x0.31mm.jpg",
+      "thumb": "images/dieshot/longxin/muju2u21-longxin-3a6000-9.98x11.59x0.31mm.thumb.jpg",
+      "file": "images/dieshot/longxin/muju2u21-longxin-3a6000-9.98x11.59x0.31mm.jpg",
       "name": "longxin  3a6000 9.98x11.59x0.31mm...jpg",
       "size": 4136864,
-      "addedAt": "2026-09-27T13:07:38.281Z",
       "w": 7721,
       "h": 6662,
-      "src": "images/dieshot/longxin/muju2u21-longxin-3a6000-9.98x11.59x0.31mm.jpg",
-      "file": "images/dieshot/longxin/muju2u21-longxin-3a6000-9.98x11.59x0.31mm.jpg",
-      "thumb": "images/dieshot/longxin/muju2u21-longxin-3a6000-9.98x11.59x0.31mm.thumb.jpg"
+      "addedAt": "2026-09-27T13:07:38.281Z"
     },
     {
       "id": "imujtzjk25nnyi",
-      "coll": "dieshot",
       "title": "NVSwitch v3",
-      "desc": "TSMC 12nm",
+      "desc": "TSMC 10nm",
       "tags": [
         "NVIDIA"
       ],
+      "src": "images/dieshot/nvidia/mujtzjk2-Nvlink-3.0-LR10-891-A1-7.95x19.79x0.77mm.jpg",
+      "thumb": "images/dieshot/nvidia/mujtzjk2-Nvlink-3.0-LR10-891-A1-7.95x19.79x0.77mm.thumb.jpg",
+      "file": "images/dieshot/nvidia/mujtzjk2-Nvlink-3.0-LR10-891-A1-7.95x19.79x0.77mm.jpg",
       "name": "Nvlink 3.0 LR10-891-A1 7.95x19.79x0.77mm...jpg",
       "size": 2405127,
-      "addedAt": "2026-09-27T13:05:04.706Z",
       "w": 7927,
       "h": 3183,
-      "src": "images/dieshot/nvidia/mujtzjk2-Nvlink-3.0-LR10-891-A1-7.95x19.79x0.77mm.jpg",
-      "file": "images/dieshot/nvidia/mujtzjk2-Nvlink-3.0-LR10-891-A1-7.95x19.79x0.77mm.jpg",
-      "thumb": "images/dieshot/nvidia/mujtzjk2-Nvlink-3.0-LR10-891-A1-7.95x19.79x0.77mm.thumb.jpg"
+      "addedAt": "2026-09-27T13:05:04.706Z"
     },
     {
       "id": "imujts24qc4ml9",
-      "coll": "dieshot",
       "title": "M100 Ultra",
       "desc": "TSMC N5",
       "tags": [
         "Li Auto"
       ],
+      "src": "images/dieshot/li-auto/mujts24q-M100-U-25.51x16.11x0.jpg",
+      "thumb": "images/dieshot/li-auto/mujts24q-M100-U-25.51x16.11x0.thumb.jpg",
+      "file": "images/dieshot/li-auto/mujts24q-M100-U-25.51x16.11x0.jpg",
       "name": "M100 U 25.51x16.11x0.jpg",
       "size": 7568072,
-      "addedAt": "2026-09-27T12:59:15.530Z",
       "w": 6667,
       "h": 4525,
-      "src": "images/dieshot/li-auto/mujts24q-M100-U-25.51x16.11x0.jpg",
-      "file": "images/dieshot/li-auto/mujts24q-M100-U-25.51x16.11x0.jpg",
-      "thumb": "images/dieshot/li-auto/mujts24q-M100-U-25.51x16.11x0.thumb.jpg"
+      "addedAt": "2026-09-27T12:59:15.530Z"
     },
     {
       "id": "imuj84zyb54606",
