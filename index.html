@@ -1051,7 +1051,7 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
     <span class="sep">|</span>
     <a href="CATALOG.md">厂商目录清单</a>
     <span class="sep">|</span>
-    <span class="fstats">总访问 <b id="statViews">—</b> · 当前在线 <b id="statOnline">—</b></span>
+    <span class="fstats">总访问 <b id="statViews">—</b> · 近 15 分钟访客 <b id="statOnline">—</b></span>
     <span class="sep">|</span>
     <span id="footYear"></span>
     <div class="foot-links">
@@ -1372,6 +1372,12 @@ var EN = {
   /* 页脚 */
   'Cloudflare Pages':'Cloudflare Pages', '友情链接':'Friend links',
   '自动排列':'Auto layout', '每行 {n} 列':'{n} per row', '显示选项':'Display options',
+  '每行 2 列':'2 per row', '每行 3 列':'3 per row', '每行 4 列':'4 per row',
+  '每行 5 列':'5 per row', '每行 6 列':'6 per row',
+  '· 近 15 分钟访客':'· Visitors (15 min)', '本机草稿':'local draft',
+  '拖拽、粘贴或点击选择图片，填写信息后保存。改动将写入 gallery.json 与图片目录。':'Drag, paste, or click to select images, fill in the info and save. Changes go to gallery.json and the image folder.',
+  '填写后，上传/删除会通过 GitHub Contents API 直接提交到仓库，访客打开网页即可看到最新图片。':'Once filled in, uploads and deletions commit straight to the repo via the GitHub Contents API — visitors see it on refresh.',
+  'Token 仅保存在你自己的浏览器 localStorage 中，不会写入仓库。':'The token stays in your browser\'s localStorage and is never written to the repo.',
   '厂商目录清单':'Catalog',
   '杂图':'Misc', '{items} 张杂图 · 点击查看大图':'{items} images · click to view',
   '全部列表':'All images', '滚动墙':'Scroll wall',
@@ -1395,7 +1401,7 @@ var EN = {
   '桌宠样式设置':'Pet style settings', '访客样式：拖拽调整桌宠（{d}）':'Visitor style: drag the pet ({d})',
   '已恢复默认位置':'Position reset to default', '已放弃 Live2D 的改动':'Live2D changes discarded',
   '先进入管理模式':'Enter admin mode first',
-  '总访问':'Visits', '当前在线':'Online now',
+  '总访问':'Visits', '近 15 分钟访客':'Visitors (15 min)',
   '主页背景已更新':'Background updated',
   '折叠 / 展开模型':'Collapse / expand the model',
   /* 动态文案模板 */
@@ -2044,6 +2050,7 @@ var STATS_API = 'https://countapi.mileshilliard.com/api/v1';
 var STATS_KEY = 'hieq-dieshot-site';
 var STATS_POLL = 20000;            /* 实时刷新间隔 */
 var STATS_BUSY = false;
+var ONLINE_CACHE = {};             /* 旧的 15 分钟窗口不再变化，缓存住省请求 */
 function fmtNum(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 function setStat(id, v){ var el = $(id); if(el) el.textContent = isNaN(v) ? '—' : fmtNum(v); }
 async function bumpViews(){        /* 进站 +1，并显示最新总数 */
@@ -2069,8 +2076,29 @@ async function refreshStats(){
         try{ localStorage.setItem('layout.presence', String(bucket)); }catch(e){}
         await fetch(STATS_API + '/hit/' + STATS_KEY + '-on-' + bucket + '?ts=' + Date.now(), {cache:'no-store', keepalive:true});
       }
-      var g = await (await fetch(STATS_API + '/get/' + STATS_KEY + '-on-' + bucket + '?ts=' + Date.now(), {cache:'no-store'})).json();
-      setStat('statOnline', Number(g && g.value));
+      /* 近 15 分钟访客 = 最近 3 个窗口的平均，消除「换桶归零」造成的骤降 */
+      var nums = [];
+      for(var b = bucket; b > bucket - 3; b--){
+        var v = ONLINE_CACHE[b];
+        if(v == null){
+          try{
+            var g = await (await fetch(STATS_API + '/get/' + STATS_KEY + '-on-' + b + '?ts=' + Date.now(), {cache:'no-store'})).json();
+            v = Number(g && g.value);
+            if(isNaN(v)) v = null;
+            else ONLINE_CACHE[b] = v;      /* 旧窗口不再变化，缓存住省请求 */
+          }catch(e){ v = null; }
+        }
+        if(v != null) nums.push(v);
+      }
+      if(nums.length){
+        var sum = 0;
+        for(var k = 0; k < nums.length; k++) sum += nums[k];
+        setStat('statOnline', Math.round(sum / nums.length));
+      }
+      /* 只保留最近几桶，避免缓存无限增长 */
+      Object.keys(ONLINE_CACHE).forEach(function(key){
+        if(Number(key) < bucket - 5) delete ONLINE_CACHE[key];
+      });
     }catch(e){}
   }finally{
     STATS_BUSY = false;
