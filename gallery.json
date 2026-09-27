@@ -19,6 +19,23 @@
   },
   "items": [
     {
+      "id": "imujtzjk25nnyi",
+      "coll": "dieshot",
+      "title": "NVSwitch v3",
+      "desc": "TSMC 12nm",
+      "tags": [
+        "NVIDIA"
+      ],
+      "name": "Nvlink 3.0 LR10-891-A1 7.95x19.79x0.77mm...jpg",
+      "size": 2405127,
+      "addedAt": "2026-09-27T13:05:04.706Z",
+      "w": 7927,
+      "h": 3183,
+      "src": "images/dieshot/nvidia/mujtzjk2-Nvlink-3.0-LR10-891-A1-7.95x19.79x0.77mm.jpg",
+      "file": "images/dieshot/nvidia/mujtzjk2-Nvlink-3.0-LR10-891-A1-7.95x19.79x0.77mm.jpg",
+      "thumb": "images/dieshot/nvidia/mujtzjk2-Nvlink-3.0-LR10-891-A1-7.95x19.79x0.77mm.thumb.jpg"
+    },
+    {
       "id": "imujts24qc4ml9",
       "coll": "dieshot",
       "title": "M100 Ultra",
