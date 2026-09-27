@@ -19,21 +19,37 @@
   },
   "items": [
     {
-      "id": "imuj84zyb54606",
+      "id": "imujtrvugwvuvs",
       "coll": "dieshot",
+      "title": "M100 Ultra",
+      "desc": "TSMC N5",
+      "tags": [
+        "Li Auto"
+      ],
+      "name": "M100 U 25.51x16.11x0.jpg",
+      "size": 7568072,
+      "addedAt": "2026-09-27T12:59:07.384Z",
+      "w": 6667,
+      "h": 4525,
+      "src": "images/dieshot/li-auto/mujtrvug-M100-U-25.51x16.11x0.jpg",
+      "file": "images/dieshot/li-auto/mujtrvug-M100-U-25.51x16.11x0.jpg",
+      "thumb": "images/dieshot/li-auto/mujtrvug-M100-U-25.51x16.11x0.thumb.jpg"
+    },
+    {
+      "id": "imuj84zyb54606",
       "title": "Cavium Thunder X",
       "desc": "TSMC 28nm",
       "tags": [
         "Cavium"
       ],
+      "src": "images/dieshot/cavium/muj84zyc-IMG_20260926_231508.jpg",
+      "thumb": "images/dieshot/cavium/muj84zyc-IMG_20260926_231508.thumb.jpg",
+      "file": "images/dieshot/cavium/muj84zyc-IMG_20260926_231508.jpg",
       "name": "IMG_20260926_231508.jpg",
       "size": 10690725,
-      "addedAt": "2026-09-27T02:53:27.683Z",
       "w": 3970,
       "h": 3146,
-      "src": "images/dieshot/cavium/muj84zyc-IMG_20260926_231508.jpg",
-      "file": "images/dieshot/cavium/muj84zyc-IMG_20260926_231508.jpg",
-      "thumb": "images/dieshot/cavium/muj84zyc-IMG_20260926_231508.thumb.jpg"
+      "addedAt": "2026-09-27T02:53:27.683Z"
     },
     {
       "id": "imuil7t2q2ccvq",
