@@ -1416,6 +1416,8 @@ var DYN = [
   [/^开始为 (\d+) 张图片生成缩略图…$/, 'Generating thumbnails for $1 images…'],
   [/^背景更新失败：(.+)$/, 'Background update failed: $1'],
   [/^已补齐 (\d+) 张缩略图$/, 'Backfilled $1 thumbnails'],
+  [/^已提交 (\d+) 个文件（1 次部署）$/, 'Committed $1 files (1 deployment)'],
+  [/^待提交$/, 'pending commit'],
   [/^正在准备下载…$/, 'Preparing download…'],
   [/^信息已更新$/, 'Info updated'],
   [/^已同步到 GitHub 仓库$/, 'Synced to GitHub repo'],
@@ -1673,6 +1675,40 @@ async function ghDelFile(path, message){
   })});
 }
 
+/* 多文件一次提交：一次上传的 原图 + 缩略图 + 清单 合成同一个 commit，
+   只触发一次 Cloudflare 部署，清单与图片永远同时生效；
+   没有服务端会话时退回逐个写入（GitHub Pages / 本地场景） */
+async function ghCommitFiles(files, message){
+  files = files || [];
+  var session = getSession();
+  if(session && files.length){
+    try{
+      var r = await fetch('/api/gh', {
+        method:'POST', cache:'no-store',
+        headers:{'Content-Type':'application/json', 'X-Admin-Token': session},
+        body: JSON.stringify({
+          op:'commit', message: message || 'update content',
+          branch: (ghCfg().branch || 'main'),
+          files: files.map(function(f){ return {path: f.path, content: b64(f.buf)}; })
+        })
+      });
+      if(r.status === 401){
+        setSession('');
+        if(state.admin){ state.admin = false; setAdminUI(); toast('会话已过期，请重新登录'); }
+      }
+      var d = null;
+      try{ d = await r.json(); }catch(e){}
+      return {ok:r.ok, status:r.status, data:d};
+    }catch(e){ return {ok:false, status:0, data:null}; }
+  }
+  var last = {ok:true, status:200, data:null};
+  for(var i = 0; i < files.length; i++){
+    last = await ghPutFile(files[i].path, files[i].buf, (i === 0 && message) ? message : ('add ' + files[i].path));
+    if(!last.ok) return last;
+  }
+  return last;
+}
+
 /* 接口设置区的提示条 */
 function showGhMsg(kind, msg){
   var n = $('ghMsg');
@@ -1828,8 +1864,8 @@ function siteForManifest(){
   delete s.l2d;
   return s;
 }
-async function saveManifest(message, coll){
-  /* 写回当前版块的清单（gallery.json 或 misc.json）；否则存本机草稿 */
+/* 组装清单文件（不落盘）：saveManifest 与批量提交共用 */
+function manifestPayload(coll){
   coll = coll || state.active;
   var isMisc = (coll === 'misc');
   var gc = ghCfg();
@@ -1846,9 +1882,20 @@ async function saveManifest(message, coll){
     },
     items: list
   };
-  var name = isMisc ? 'misc.json' : (gc.manifest || 'gallery.json');
+  return {
+    name: isMisc ? 'misc.json' : (gc.manifest || 'gallery.json'),
+    buf: new TextEncoder().encode(JSON.stringify(payload, null, 2)),
+    payload: payload
+  };
+}
+async function saveManifest(message, coll){
+  /* 写回当前版块的清单（gallery.json 或 misc.json）；否则存本机草稿 */
+  coll = coll || state.active;
+  var isMisc = (coll === 'misc');
+  var m = manifestPayload(coll);
+  var payload = m.payload;
   if(ghReady()){
-    var r = await ghPutFile(name, new TextEncoder().encode(JSON.stringify(payload, null, 2)), message || ('update ' + name));
+    var r = await ghPutFile(m.name, m.buf, message || ('update ' + m.name));
     if(r.ok){ state.draft=false; lsSet(isMisc ? LS.draftMisc : LS.draft, null); toast('已同步到 GitHub 仓库'); return true; }
     toast('同步失败（' + r.status + '）：' + (r.data && r.data.message ? r.data.message : '请检查 Token 与仓库设置'));
     return false;
@@ -1887,12 +1934,16 @@ function buildNav(){
       var p = document.createElementNS('http://www.w3.org/2000/svg','path');
       p.setAttribute('d','M5 9l7 7 7-7'); svg.appendChild(p); a.appendChild(svg);
       a.addEventListener('mouseenter', function(){ openMenu(n); });
+      a.addEventListener('mouseleave', scheduleCloseMenu);   /* 横向移开 Layout（仍在顶栏上）→ 稍后收起 */
     }
     a.addEventListener('click', function(){ closeMenu(); });
     wrap.appendChild(a);
   });
   $('navShell').addEventListener('mouseleave', scheduleCloseMenu);
   $('navShell').addEventListener('mouseenter', cancelCloseMenu);
+  /* 鼠标进入展开卡片（含与顶栏之间的热区）→ 取消收起；离开卡片 → 收起 */
+  $('megamenu').addEventListener('mouseenter', cancelCloseMenu);
+  $('megamenu').addEventListener('mouseleave', scheduleCloseMenu);
 }
 var menuOpenFor = null, menuCloseTimer = 0;
 function scheduleCloseMenu(){          /* 收起加一点缓冲：鼠标往卡片移动的过程中不会被误收 */
@@ -3541,10 +3592,10 @@ function renderQueue(){
 async function commitQueue(){
   if(!state.admin) return;      /* 写操作仅限管理模式 */
   if(!state.queue.length) return;
-  var c = ghCfg();
   var mode = ghReady() ? 'github' : 'local';
   $('btnCommit').disabled = true;
 
+  var batch = [];               /* github 模式：把所有文件攒起来，最后一次提交 */
   for(var i = 0; i < state.queue.length; i++){
     var q = state.queue[i];
     try{
@@ -3572,15 +3623,14 @@ async function commitQueue(){
           ? ('images/misc/' + sub)
           : ('images/dieshot/' + ((tag0 && dirSlug(tag0)) || sub));
         var path = dirBase + '/' + safeName(q.name);
-        var put = await ghPutFile(path, buf, 'add ' + path);
-        if(!put.ok) throw new Error((put.data && put.data.message) || ('HTTP ' + put.status));
         item.src = path;
         item.file = path;
+        batch.push({path: path, buf: buf});
         /* 原图旁生成缩略图文件，访客预览只加载它 */
         if(th.blob){
           var tpath = thumbName(path);
-          var putT = await ghPutFile(tpath, await th.blob.arrayBuffer(), 'add ' + tpath);
-          if(putT.ok) item.thumb = tpath;
+          batch.push({path: tpath, buf: await th.blob.arrayBuffer()});
+          item.thumb = tpath;
         }
       }else{
         await IDB.put(item.id, await q.file.arrayBuffer());          /* 存字节：跨浏览器/克隆最稳 */
@@ -3594,16 +3644,36 @@ async function commitQueue(){
         item.local = true;
       }
       state.items.unshift(item);
-      q.state = mode === 'github' ? '已提交' : '已存本机'; q.phase = 'ok';
+      q.state = mode === 'github' ? '待提交' : '已存本机'; q.phase = mode === 'github' ? 'queued' : 'ok';
     }catch(err){
       q.state = '失败：' + (err && err.message ? err.message : '未知错误'); q.phase = 'err';
     }
     renderQueue();
   }
 
+  /* 一次提交打包：原图 + 缩略图 + 清单 = 1 个 commit → 只触发一次部署，
+     且清单与图片同时生效，不会出现「清单到了图还没到」 */
+  if(mode === 'github' && batch.length){
+    var m = manifestPayload(state.active);
+    batch.push({path: m.name, buf: m.buf});
+    var res = await ghCommitFiles(batch, 'add ' + batch.length + ' files');
+    state.queue.forEach(function(q){
+      if(q.phase === 'queued'){
+        if(res && res.ok){ q.state = '已提交'; q.phase = 'ok'; }
+        else{ q.state = '失败：' + (res && res.data && res.data.message ? res.data.message : ('HTTP ' + (res ? res.status : 0))); q.phase = 'err'; }
+      }
+    });
+    if(res && res.ok){
+      state.draft = false;
+      try{ lsSet(LS.draft, null); }catch(e){}
+      toast('已提交 ' + batch.length + ' 个文件（1 次部署）');
+    }
+    renderQueue();
+  }
+
   var done = state.queue.filter(function(q){ return q.phase === 'ok'; }).length;
   if(done){
-    await saveManifest('update gallery.json (+' + done + ' images)');
+    if(mode !== 'github') await saveManifest('update gallery.json (+' + done + ' images)');
     state.queue = state.queue.filter(function(q){ return q.phase !== 'ok'; });
     renderQueue();
     renderGallery();

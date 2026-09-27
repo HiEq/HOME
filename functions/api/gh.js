@@ -68,6 +68,49 @@ export async function onRequestPost({env, request}){
   if (!['GET', 'PUT', 'DELETE'].includes(method)) return json({ok: false, error: 'bad method'}, 400);
 
   const url = 'https://api.github.com/repos/' + repo + '/contents/' + path.split('/').filter(Boolean).map(encodeURIComponent).join('/');
+
+  /* ---------- 批量模式：多文件一次提交（Git Data API） ----------
+     一次上传的 原图 + 缩略图 + gallery.json 合成同一个 commit，
+     只触发一次 Cloudflare 部署，且清单与图片始终同时生效 */
+  if (body.op === 'commit') {
+    const files = Array.isArray(body.files) ? body.files : [];
+    if (!files.length || files.length > 30) return json({ok: false, error: 'bad files'}, 400);
+    for (const f of files) {
+      const p = String(f && f.path || '');
+      if (!p || !/^[A-Za-z0-9._\-\/]+$/.test(p) || p.indexOf('..') >= 0) return json({ok: false, error: 'bad path'}, 400);
+    }
+    const branch = /^[A-Za-z0-9._\-\/]+$/.test(String(body.branch || '')) ? String(body.branch) : 'main';
+    const api = 'https://api.github.com/repos/' + repo;
+    const H = {
+      'Authorization': 'token ' + (env.GITHUB_TOKEN || ''),
+      'Accept': 'application/vnd.github+json',
+      'User-Agent': 'hieq-home-pages',
+      'Content-Type': 'application/json'
+    };
+    try {
+      const ref = await (await fetch(api + '/git/ref/heads/' + branch, {headers: H})).json();
+      const head = ref && ref.object && ref.object.sha;
+      if (!head) return json({ok: false, error: 'no branch head'}, 502);
+      const headCommit = await (await fetch(api + '/git/commits/' + head, {headers: H})).json();
+      const baseTree = headCommit && headCommit.tree && headCommit.tree.sha;
+      if (!baseTree) return json({ok: false, error: 'no base tree'}, 502);
+      const tree = [];
+      for (const f of files) {
+        const blob = await (await fetch(api + '/git/blobs', {method: 'POST', headers: H, body: JSON.stringify({content: f.content, encoding: 'base64'})})).json();
+        if (!blob || !blob.sha) return json({ok: false, error: 'blob failed'}, 502);
+        tree.push({path: String(f.path), mode: '100644', type: 'blob', sha: blob.sha});
+      }
+      const newTree = await (await fetch(api + '/git/trees', {method: 'POST', headers: H, body: JSON.stringify({base_tree: baseTree, tree})})).json();
+      if (!newTree || !newTree.sha) return json({ok: false, error: 'tree failed'}, 502);
+      const commit = await (await fetch(api + '/git/commits', {method: 'POST', headers: H, body: JSON.stringify({message: String(body.message || 'update content'), tree: newTree.sha, parents: [head]})})).json();
+      if (!commit || !commit.sha) return json({ok: false, error: 'commit failed'}, 502);
+      await fetch(api + '/git/refs/heads/' + branch, {method: 'PATCH', headers: H, body: JSON.stringify({sha: commit.sha})});
+      return json({ok: true, sha: commit.sha, files: files.length});
+    } catch (e) {
+      return json({ok: false, error: 'upstream error'}, 502);
+    }
+  }
+
   try {
     const res = await fetch(url, {
       method,
