@@ -19,6 +19,23 @@
   },
   "items": [
     {
+      "id": "imuju2u21haf2o",
+      "coll": "dieshot",
+      "title": "Longxin 3A6000",
+      "desc": "Unknow",
+      "tags": [
+        "Longxin"
+      ],
+      "name": "longxin  3a6000 9.98x11.59x0.31mm...jpg",
+      "size": 4136864,
+      "addedAt": "2026-09-27T13:07:38.281Z",
+      "w": 7721,
+      "h": 6662,
+      "src": "images/dieshot/longxin/muju2u21-longxin-3a6000-9.98x11.59x0.31mm.jpg",
+      "file": "images/dieshot/longxin/muju2u21-longxin-3a6000-9.98x11.59x0.31mm.jpg",
+      "thumb": "images/dieshot/longxin/muju2u21-longxin-3a6000-9.98x11.59x0.31mm.thumb.jpg"
+    },
+    {
       "id": "imujtzjk25nnyi",
       "coll": "dieshot",
       "title": "NVSwitch v3",
