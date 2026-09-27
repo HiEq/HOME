@@ -19,6 +19,23 @@
   },
   "items": [
     {
+      "id": "imujts24qc4ml9",
+      "coll": "dieshot",
+      "title": "M100 Ultra",
+      "desc": "TSMC N5",
+      "tags": [
+        "Li Auto"
+      ],
+      "name": "M100 U 25.51x16.11x0.jpg",
+      "size": 7568072,
+      "addedAt": "2026-09-27T12:59:15.530Z",
+      "w": 6667,
+      "h": 4525,
+      "src": "images/dieshot/li-auto/mujts24q-M100-U-25.51x16.11x0.jpg",
+      "file": "images/dieshot/li-auto/mujts24q-M100-U-25.51x16.11x0.jpg",
+      "thumb": "images/dieshot/li-auto/mujts24q-M100-U-25.51x16.11x0.thumb.jpg"
+    },
+    {
       "id": "imujtrvugwvuvs",
       "coll": "dieshot",
       "title": "M100 Ultra",
