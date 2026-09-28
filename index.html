@@ -3431,7 +3431,7 @@ var PW_TRIES = 0, PW_LOCK_UNTIL = 0;      /* 连续试错限速：越错锁得�
    把控制台（Cloudflare → Turnstile → Add site）给的 Site Key 填到下面即可启用；
    留空则不启用，站点照常可用。Secret Key 配在 Pages 环境变量 TURNSTILE_SECRET 里，
    由 /api/login 在服务端校验 —— 浏览器拿不到它。 */
-var TURNSTILE_SITEKEY = '';
+var TURNSTILE_SITEKEY = '0x4AAAAAAFGtN7gGGZyrHy_u';   /* Cloudflare Turnstile Site Key */
 function turnstileToken(){
   try{ return (window.turnstile && window.turnstile.getResponse) ? (window.turnstile.getResponse() || '') : ''; }
   catch(e){ return ''; }
