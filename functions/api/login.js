@@ -60,22 +60,6 @@ export async function onRequestPost({env, request}){
   let body = {};
   try{ body = await request.json(); }catch(e){}
 
-  /* ---------- Turnstile 人机验证（配置了 TURNSTILE_SECRET 才启用） ---------- */
-  if (env.TURNSTILE_SECRET) {
-    const token = String(body.turnstile || '');
-    if (!token) return json({ok: false, error: 'turnstile required'}, 403);
-    try {
-      const v = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: new URLSearchParams({secret: env.TURNSTILE_SECRET, response: token, remoteip: clientIP(request)})
-      }).then(r => r.json());
-      if (!v || !v.success) return json({ok: false, error: 'turnstile failed'}, 403);
-    } catch (e) {
-      return json({ok: false, error: 'turnstile error'}, 502);
-    }
-  }
-
   const want = env.ADMIN_PASSWORD || '';
   if(!want) return json({ok: false, error: 'server not configured'}, 500);
   if(!timingSafeEqual(body.password || '', want)){

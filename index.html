@@ -1125,7 +1125,6 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
       <input id="pw" type="password" placeholder="请输入管理口令" autocomplete="current-password">
     </div>
     <div class="note hidden" id="pwErr">口令不正确，请重试。</div>
-    <div class="turnstile-box" id="turnstileBox"></div>
     <div class="sheet-foot">
       <button class="btn ghost sm" id="pwCancel">取消</button>
       <button class="btn sm" id="pwOk">解锁</button>
@@ -1654,12 +1653,12 @@ var LS_SESSION = 'layout.adminSession';
 function getSession(){ try{ return localStorage.getItem(LS_SESSION) || ''; }catch(e){ return ''; } }
 function setSession(v){ try{ v ? localStorage.setItem(LS_SESSION, v) : localStorage.removeItem(LS_SESSION); }catch(e){} }
 function serverMode(){ return !!getSession(); }
-async function apiLogin(pw, turnstile){
+async function apiLogin(pw){
   try{
     var res = await fetch('/api/login', {
       method:'POST', cache:'no-store',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({password: pw, turnstile: turnstile || ''})
+      body: JSON.stringify({password: pw})
     });
     if(res.status === 404 || res.status === 405) return {mode:'local'};   /* 没有后端 → 退回本地校验 */
     var d = await res.json();
@@ -3455,7 +3454,7 @@ function openLogin(){
   $('pwErr').classList.add('hidden');
   $('pw').value = '';
   $('modalLogin').classList.add('is-open');
-  renderTurnstile($('turnstileBox'));   /* 人机验证（未配置 Site Key 时自动跳过） */
+  /* 人机验证只做在进站闸门（initGate），登录框这里只校验口令 */
   setTimeout(function(){ $('pw').focus(); }, 60);
 }
 var PW_TRIES = 0, PW_LOCK_UNTIL = 0;      /* 连续试错限速：越错锁得越久 */
@@ -3464,11 +3463,7 @@ var PW_TRIES = 0, PW_LOCK_UNTIL = 0;      /* 连续试错限速：越错锁得�
    留空则不启用，站点照常可用。Secret Key 配在 Pages 环境变量 TURNSTILE_SECRET 里，
    由 /api/login 在服务端校验 —— 浏览器拿不到它。 */
 var TURNSTILE_SITEKEY = '0x4AAAAAAFGtN7gGGZyrHy_u';   /* Cloudflare Turnstile Site Key */
-function turnstileToken(){
-  try{ return (window.turnstile && window.turnstile.getResponse) ? (window.turnstile.getResponse() || '') : ''; }
-  catch(e){ return ''; }
-}
-/* box = 挂载容器；onOk = 验证通过回调（不传则只是渲染，令牌在登录时再取） */
+/* Turnstile 只用在进站闸门；登录框不再做人机验证 */
 function renderTurnstile(box, onOk){
   if(!box) return;
   if(!TURNSTILE_SITEKEY){ box.innerHTML = ''; if(onOk) onOk(true); return; }   /* 未配置 → 直接放行 */
@@ -3488,9 +3483,6 @@ function renderTurnstile(box, onOk){
   s.async = true;
   s.onload = start;
   document.head.appendChild(s);
-}
-function resetTurnstile(){
-  try{ if(window.turnstile && window.turnstile.reset) window.turnstile.reset(); }catch(e){}
 }
 /* 进站闸门：Turnstile 通过后放行，本机 24 小时内不再询问 */
 function initGate(){
@@ -3520,7 +3512,6 @@ function initGate(){
 }
 function loginFail(){
   PW_TRIES++;
-  resetTurnstile();               /* 失败后重置挑战，需重新证明是人 */
   if(PW_TRIES >= 5){
     PW_LOCK_UNTIL = Date.now() + Math.min(30000 * Math.pow(2, PW_TRIES - 5), 300000);   /* 30 秒起，指数退避到 5 分钟 */
     $('pwErr').textContent = t('连续错误次数过多，已暂时锁定');
@@ -3538,7 +3529,7 @@ async function tryLogin(){
   }
   var pw = $('pw').value || '';
   /* 1) 服务端校验（真正的鉴权：口令与 GitHub Token 都只存在 Worker 里） */
-  var r = await apiLogin(pw, turnstileToken());
+  var r = await apiLogin(pw);
   if(r.mode === 'server'){
     if(!r.ok){ loginFail(); return; }
     setSession(r.token);
