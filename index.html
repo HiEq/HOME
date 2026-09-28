@@ -565,6 +565,9 @@ main{flex:1 0 auto}
 .note.warn{background:rgba(255,149,0,.12)}
 .note.err{background:rgba(255,59,48,.1)}
 .note b{font-weight:600}
+/* Cloudflare Turnstile 人机验证（未配置 Site Key 时隐藏） */
+.turnstile-box{margin:14px 0 2px;display:flex;justify-content:center}
+.turnstile-box:empty{display:none}
 kbd{
   display:inline-block;padding:1px 6px;border-radius:5px;font-size:12px;
   background:rgba(128,128,128,.14);box-shadow:inset 0 -1px 0 var(--hairline-strong);
@@ -1103,6 +1106,7 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
       <input id="pw" type="password" placeholder="请输入管理口令" autocomplete="current-password">
     </div>
     <div class="note hidden" id="pwErr">口令不正确，请重试。</div>
+    <div class="turnstile-box" id="turnstileBox"></div>
     <div class="sheet-foot">
       <button class="btn ghost sm" id="pwCancel">取消</button>
       <button class="btn sm" id="pwOk">解锁</button>
@@ -1618,16 +1622,16 @@ var LS_SESSION = 'layout.adminSession';
 function getSession(){ try{ return localStorage.getItem(LS_SESSION) || ''; }catch(e){ return ''; } }
 function setSession(v){ try{ v ? localStorage.setItem(LS_SESSION, v) : localStorage.removeItem(LS_SESSION); }catch(e){} }
 function serverMode(){ return !!getSession(); }
-async function apiLogin(pw){
+async function apiLogin(pw, turnstile){
   try{
     var res = await fetch('/api/login', {
       method:'POST', cache:'no-store',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({password: pw})
+      body: JSON.stringify({password: pw, turnstile: turnstile || ''})
     });
     if(res.status === 404 || res.status === 405) return {mode:'local'};   /* 没有后端 → 退回本地校验 */
     var d = await res.json();
-    return {mode:'server', ok: !!(res.ok && d && d.ok), token: (d && d.token) || ''};
+    return {mode:'server', ok: !!(res.ok && d && d.ok), token: (d && d.token) || '', error: (d && d.error) || ''};
   }catch(e){ return {mode:'local'}; }
 }
 
@@ -2052,8 +2056,15 @@ var STATS_POLL = 20000;            /* 实时刷新间隔 */
 var STATS_BUSY = false;
 var ONLINE_CACHE = {};             /* 旧的 15 分钟窗口不再变化，缓存住省请求 */
 function fmtNum(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+/* 只统计真实浏览器：识别常见爬虫 / 无头浏览器，避免累计访问与在线数被刷高 */
+function isCrawler(){
+  var ua = '';
+  try{ ua = navigator.userAgent || ''; }catch(e){ return false; }
+  return /bot|crawl|spider|slurp|headless|phantom|puppeteer|playwright|python|okhttp|axios|curl\/|wget\/|postman|insomnia|go-http|libwww|feedfetcher|monitor/i.test(ua);
+}
 function setStat(id, v){ var el = $(id); if(el) el.textContent = isNaN(v) ? '—' : fmtNum(v); }
 async function bumpViews(){        /* 进站 +1，并显示最新总数 */
+  if(isCrawler()) return;          /* 爬虫不算访问 */
   try{
     var d = await (await fetch(STATS_API + '/hit/' + STATS_KEY + '-views?ts=' + Date.now(), {cache:'no-store', keepalive:true})).json();
     setStat('statViews', Number(d && d.value));
@@ -2072,7 +2083,7 @@ async function refreshStats(){
       var bucket = Math.floor(Date.now() / 900000);      /* 15 分钟一桶 */
       var last = 0;
       try{ last = parseInt(localStorage.getItem('layout.presence') || '0', 10) || 0; }catch(e){}
-      if(last !== bucket){                               /* 同一访客每窗口只计一次 */
+      if(last !== bucket && !isCrawler()){               /* 同一访客每窗口只计一次；爬虫不算在线 */
         try{ localStorage.setItem('layout.presence', String(bucket)); }catch(e){}
         await fetch(STATS_API + '/hit/' + STATS_KEY + '-on-' + bucket + '?ts=' + Date.now(), {cache:'no-store', keepalive:true});
       }
@@ -3412,11 +3423,49 @@ function openLogin(){
   $('pwErr').classList.add('hidden');
   $('pw').value = '';
   $('modalLogin').classList.add('is-open');
+  renderTurnstile();                 /* 人机验证（未配置 Site Key 时自动跳过） */
   setTimeout(function(){ $('pw').focus(); }, 60);
 }
 var PW_TRIES = 0, PW_LOCK_UNTIL = 0;      /* 连续试错限速：越错锁得越久 */
+/* ---------- Cloudflare Turnstile 人机验证 ----------
+   把控制台（Cloudflare → Turnstile → Add site）给的 Site Key 填到下面即可启用；
+   留空则不启用，站点照常可用。Secret Key 配在 Pages 环境变量 TURNSTILE_SECRET 里，
+   由 /api/login 在服务端校验 —— 浏览器拿不到它。 */
+var TURNSTILE_SITEKEY = '';
+function turnstileToken(){
+  try{ return (window.turnstile && window.turnstile.getResponse) ? (window.turnstile.getResponse() || '') : ''; }
+  catch(e){ return ''; }
+}
+function renderTurnstile(){
+  var box = $('turnstileBox');
+  if(!box) return;
+  if(!TURNSTILE_SITEKEY){ box.innerHTML = ''; return; }
+  if(window.turnstile && window.turnstile.render){
+    box.innerHTML = '';
+    window.turnstile.render(box, {sitekey: TURNSTILE_SITEKEY, theme: 'auto'});
+    return;
+  }
+  /* 脚本按需加载一次 */
+  if(box.getAttribute('data-loading') === '1') return;
+  box.setAttribute('data-loading', '1');
+  var s = document.createElement('script');
+  s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+  s.async = true;
+  s.onload = function(){
+    try{
+      if(window.turnstile && window.turnstile.render){
+        window.turnstile.render(box, {sitekey: TURNSTILE_SITEKEY, theme: 'auto'});
+      }
+    }catch(e){}
+  };
+  document.head.appendChild(s);
+}
+function resetTurnstile(){
+  try{ if(window.turnstile && window.turnstile.reset) window.turnstile.reset(); }catch(e){}
+}
 function loginFail(){
   PW_TRIES++;
+  resetTurnstile();               /* 失败后重置挑战，需重新证明是人 */
   if(PW_TRIES >= 5){
     PW_LOCK_UNTIL = Date.now() + Math.min(30000 * Math.pow(2, PW_TRIES - 5), 300000);   /* 30 秒起，指数退避到 5 分钟 */
     $('pwErr').textContent = t('连续错误次数过多，已暂时锁定');
@@ -3434,7 +3483,7 @@ async function tryLogin(){
   }
   var pw = $('pw').value || '';
   /* 1) 服务端校验（真正的鉴权：口令与 GitHub Token 都只存在 Worker 里） */
-  var r = await apiLogin(pw);
+  var r = await apiLogin(pw, turnstileToken());
   if(r.mode === 'server'){
     if(!r.ok){ loginFail(); return; }
     setSession(r.token);
