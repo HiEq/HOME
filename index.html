@@ -568,6 +568,25 @@ main{flex:1 0 auto}
 /* Cloudflare Turnstile 人机验证（未配置 Site Key 时隐藏） */
 .turnstile-box{margin:14px 0 2px;display:flex;justify-content:center}
 .turnstile-box:empty{display:none}
+/* 进站闸门：验证通过前挡住整页 */
+.gate{
+  position:fixed;inset:0;z-index:999;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg);
+  background:rgba(255,255,255,.72);
+  -webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px);
+}
+:root[data-theme="dark"] .gate{background:rgba(22,22,23,.82)}
+.gate[hidden]{display:none}
+.gate-card{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:26px 30px;border-radius:22px;max-width:calc(100vw - 32px);
+  background:var(--glass-strong);border:1px solid var(--hairline);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 16px 44px rgba(0,0,0,.18);
+}
+.gate-title{font-size:19px;font-weight:700;color:var(--fg)}
+.gate-sub{font-size:13.5px;color:var(--fg2);margin-bottom:6px}
+body.gate-lock{overflow:hidden}
 kbd{
   display:inline-block;padding:1px 6px;border-radius:5px;font-size:12px;
   background:rgba(128,128,128,.14);box-shadow:inset 0 -1px 0 var(--hairline-strong);
@@ -1224,6 +1243,16 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
 
 <div class="toast" id="toast"></div>
 
+<!-- ============ 进站人机验证闸门（Turnstile 通过后才放行） ============ -->
+<div class="gate" id="gate" hidden>
+  <div class="gate-card">
+    <div class="gate-title">正在验证您是人类</div>
+    <div class="gate-sub">通过下方验证后即可进入网站</div>
+    <div class="turnstile-box" id="gateTurnstile"></div>
+    <button class="btn tint sm hidden" id="gateRetry">重新验证</button>
+  </div>
+</div>
+
 <!-- 移动端底部 Dock（桌面隐藏） -->
 <nav class="dock" id="dock" aria-label="主导航 / Navigation">
   <div class="dock-inner" id="dockInner">
@@ -1375,6 +1404,9 @@ var EN = {
   '退出管理模式':'Exit admin',
   /* 页脚 */
   'Cloudflare Pages':'Cloudflare Pages', '友情链接':'Friend links',
+  '正在验证您是人类':'Verifying you are human',
+  '通过下方验证后即可进入网站':'Complete the check below to enter the site',
+  '重新验证':'Verify again',
   '自动排列':'Auto layout', '每行 {n} 列':'{n} per row', '显示选项':'Display options',
   '每行 2 列':'2 per row', '每行 3 列':'3 per row', '每行 4 列':'4 per row',
   '每行 5 列':'5 per row', '每行 6 列':'6 per row',
@@ -3423,7 +3455,7 @@ function openLogin(){
   $('pwErr').classList.add('hidden');
   $('pw').value = '';
   $('modalLogin').classList.add('is-open');
-  renderTurnstile();                 /* 人机验证（未配置 Site Key 时自动跳过） */
+  renderTurnstile($('turnstileBox'));   /* 人机验证（未配置 Site Key 时自动跳过） */
   setTimeout(function(){ $('pw').focus(); }, 60);
 }
 var PW_TRIES = 0, PW_LOCK_UNTIL = 0;      /* 连续试错限速：越错锁得越久 */
@@ -3436,32 +3468,55 @@ function turnstileToken(){
   try{ return (window.turnstile && window.turnstile.getResponse) ? (window.turnstile.getResponse() || '') : ''; }
   catch(e){ return ''; }
 }
-function renderTurnstile(){
-  var box = $('turnstileBox');
+/* box = 挂载容器；onOk = 验证通过回调（不传则只是渲染，令牌在登录时再取） */
+function renderTurnstile(box, onOk){
   if(!box) return;
-  if(!TURNSTILE_SITEKEY){ box.innerHTML = ''; return; }
-  if(window.turnstile && window.turnstile.render){
-    box.innerHTML = '';
-    window.turnstile.render(box, {sitekey: TURNSTILE_SITEKEY, theme: 'auto'});
-    return;
-  }
+  if(!TURNSTILE_SITEKEY){ box.innerHTML = ''; if(onOk) onOk(true); return; }   /* 未配置 → 直接放行 */
+  var opts = {sitekey: TURNSTILE_SITEKEY, theme: 'auto'};
+  if(onOk) opts.callback = function(){ onOk(true); };
+  var start = function(){
+    try{
+      if(window.turnstile && window.turnstile.render){ box.innerHTML = ''; window.turnstile.render(box, opts); }
+    }catch(e){}
+  };
+  if(window.turnstile && window.turnstile.render){ start(); return; }
   /* 脚本按需加载一次 */
   if(box.getAttribute('data-loading') === '1') return;
   box.setAttribute('data-loading', '1');
   var s = document.createElement('script');
   s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
   s.async = true;
-  s.onload = function(){
-    try{
-      if(window.turnstile && window.turnstile.render){
-        window.turnstile.render(box, {sitekey: TURNSTILE_SITEKEY, theme: 'auto'});
-      }
-    }catch(e){}
-  };
+  s.onload = start;
   document.head.appendChild(s);
 }
 function resetTurnstile(){
   try{ if(window.turnstile && window.turnstile.reset) window.turnstile.reset(); }catch(e){}
+}
+/* 进站闸门：Turnstile 通过后放行，本机 24 小时内不再询问 */
+function initGate(){
+  var gate = $('gate');
+  if(!gate) return;
+  var stamp = 0;
+  try{ stamp = parseInt(localStorage.getItem('layout.human') || '0', 10) || 0; }catch(e){}
+  if(stamp && (Date.now() - stamp) < 24 * 3600 * 1000) return;   /* 24 小时内已验过 */
+  gate.hidden = false;
+  document.body.classList.add('gate-lock');
+  var pass = function(){
+    try{ localStorage.setItem('layout.human', String(Date.now())); }catch(e){}
+    gate.hidden = true;
+    document.body.classList.remove('gate-lock');
+  };
+  var retry = $('gateRetry');
+  if(retry) retry.addEventListener('click', function(){
+    retry.classList.add('hidden');
+    renderTurnstile($('gateTurnstile'), pass);
+  });
+  renderTurnstile($('gateTurnstile'), pass);
+  /* 保险：8 秒还没通过（脚本加载失败/网络异常）→ 给出「重新验证」按钮，别把访客卡死 */
+  setTimeout(function(){
+    if(gate.hidden) return;
+    if(retry) retry.classList.remove('hidden');
+  }, 8000);
 }
 function loginFail(){
   PW_TRIES++;
@@ -4359,6 +4414,7 @@ function bind(){
 
 /* ---------- 启动 ---------- */
 (async function init(){
+  initGate();                            /* 进站人机验证（24 小时内验过一次就不再询问） */
   buildNav();
   bind();
   await loadManifest();
