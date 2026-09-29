@@ -19,21 +19,37 @@
   },
   "items": [
     {
-      "id": "imumd760x4npfr",
+      "id": "imumfo3hpfx7ac",
       "coll": "dieshot",
+      "title": "Ada Lovelace AD103",
+      "desc": "TSMC N5",
+      "tags": [
+        "NVIDIA"
+      ],
+      "name": "AD103-15.59x24.jpg",
+      "size": 13494651,
+      "addedAt": "2026-09-29T08:47:34.573Z",
+      "w": 11275,
+      "h": 7681,
+      "src": "images/dieshot/nvidia/mumfo3hq-AD103-15.59x24.jpg",
+      "file": "images/dieshot/nvidia/mumfo3hq-AD103-15.59x24.jpg",
+      "thumb": "images/dieshot/nvidia/mumfo3hq-AD103-15.59x24.thumb.jpg"
+    },
+    {
+      "id": "imumd760x4npfr",
       "title": "Coffee Lake",
       "desc": "Intel 14nm",
       "tags": [
         "Intel"
       ],
+      "src": "images/dieshot/intel/mumd760y-Coffee-Lake-8c-2GT-9.09x19.jpg",
+      "thumb": "images/dieshot/intel/mumd760y-Coffee-Lake-8c-2GT-9.09x19.thumb.jpg",
+      "file": "images/dieshot/intel/mumd760y-Coffee-Lake-8c-2GT-9.09x19.jpg",
       "name": "Coffee-Lake-8c-2GT-9.09x19.jpg",
       "size": 7294209,
-      "addedAt": "2026-09-29T07:38:25.473Z",
       "w": 9985,
       "h": 5286,
-      "src": "images/dieshot/intel/mumd760y-Coffee-Lake-8c-2GT-9.09x19.jpg",
-      "file": "images/dieshot/intel/mumd760y-Coffee-Lake-8c-2GT-9.09x19.jpg",
-      "thumb": "images/dieshot/intel/mumd760y-Coffee-Lake-8c-2GT-9.09x19.thumb.jpg"
+      "addedAt": "2026-09-29T07:38:25.473Z"
     },
     {
       "id": "imum41bzkg4sjt",
