@@ -19,6 +19,23 @@
   },
   "items": [
     {
+      "id": "imum41bzkg4sjt",
+      "coll": "dieshot",
+      "title": "EPYC 9845",
+      "desc": "TSMC N3/6",
+      "tags": [
+        "AMD"
+      ],
+      "name": "AMD EPYC 9845.png",
+      "size": 15960715,
+      "addedAt": "2026-09-29T03:21:56.720Z",
+      "w": 3346,
+      "h": 3319,
+      "src": "images/dieshot/amd/mum41bzn-AMD-EPYC-9845.png",
+      "file": "images/dieshot/amd/mum41bzn-AMD-EPYC-9845.png",
+      "thumb": "images/dieshot/amd/mum41bzn-AMD-EPYC-9845.thumb.jpg"
+    },
+    {
       "id": "imuju7mdtdaqg7",
       "title": "Pensando Elba DPU",
       "desc": "TSMC 7nm",
