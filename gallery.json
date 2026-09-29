@@ -20,20 +20,19 @@
   "items": [
     {
       "id": "imumfo3hpfx7ac",
-      "coll": "dieshot",
       "title": "Ada Lovelace AD103",
       "desc": "TSMC N5",
       "tags": [
         "NVIDIA"
       ],
+      "src": "images/dieshot/nvidia/mumfo3hq-AD103-15.59x24.jpg",
+      "thumb": "images/dieshot/nvidia/mumfo3hq-AD103-15.59x24.thumb.jpg",
+      "file": "images/dieshot/nvidia/mumfo3hq-AD103-15.59x24.jpg",
       "name": "AD103-15.59x24.jpg",
       "size": 13494651,
-      "addedAt": "2026-09-29T08:47:34.573Z",
       "w": 11275,
       "h": 7681,
-      "src": "images/dieshot/nvidia/mumfo3hq-AD103-15.59x24.jpg",
-      "file": "images/dieshot/nvidia/mumfo3hq-AD103-15.59x24.jpg",
-      "thumb": "images/dieshot/nvidia/mumfo3hq-AD103-15.59x24.thumb.jpg"
+      "addedAt": "2026-09-29T08:47:34.573Z"
     },
     {
       "id": "imumd760x4npfr",
@@ -2389,7 +2388,7 @@
     },
     {
       "id": "ds-hcgt-139",
-      "title": "Dimensity 9600Pro",
+      "title": "Dimensity 9600Pro ES",
       "desc": "TSMC N2P GAA",
       "tags": [
         "MediaTek"
