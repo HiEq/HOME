@@ -19,21 +19,37 @@
   },
   "items": [
     {
-      "id": "imum41bzkg4sjt",
+      "id": "imumd760x4npfr",
       "coll": "dieshot",
+      "title": "Coffee Lake",
+      "desc": "Intel 14nm",
+      "tags": [
+        "Intel"
+      ],
+      "name": "Coffee-Lake-8c-2GT-9.09x19.jpg",
+      "size": 7294209,
+      "addedAt": "2026-09-29T07:38:25.473Z",
+      "w": 9985,
+      "h": 5286,
+      "src": "images/dieshot/intel/mumd760y-Coffee-Lake-8c-2GT-9.09x19.jpg",
+      "file": "images/dieshot/intel/mumd760y-Coffee-Lake-8c-2GT-9.09x19.jpg",
+      "thumb": "images/dieshot/intel/mumd760y-Coffee-Lake-8c-2GT-9.09x19.thumb.jpg"
+    },
+    {
+      "id": "imum41bzkg4sjt",
       "title": "EPYC 9845",
       "desc": "TSMC N3/6",
       "tags": [
         "AMD"
       ],
+      "src": "images/dieshot/amd/mum41bzn-AMD-EPYC-9845.png",
+      "thumb": "images/dieshot/amd/mum41bzn-AMD-EPYC-9845.thumb.jpg",
+      "file": "images/dieshot/amd/mum41bzn-AMD-EPYC-9845.png",
       "name": "AMD EPYC 9845.png",
       "size": 15960715,
-      "addedAt": "2026-09-29T03:21:56.720Z",
       "w": 3346,
       "h": 3319,
-      "src": "images/dieshot/amd/mum41bzn-AMD-EPYC-9845.png",
-      "file": "images/dieshot/amd/mum41bzn-AMD-EPYC-9845.png",
-      "thumb": "images/dieshot/amd/mum41bzn-AMD-EPYC-9845.thumb.jpg"
+      "addedAt": "2026-09-29T03:21:56.720Z"
     },
     {
       "id": "imuju7mdtdaqg7",
