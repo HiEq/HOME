@@ -19,6 +19,23 @@
   },
   "items": [
     {
+      "id": "imuo3sgcdv0vsw",
+      "coll": "dieshot",
+      "title": "Dimensity 9600 Pro",
+      "desc": "TSMC N2P GAA",
+      "tags": [
+        "MediaTek"
+      ],
+      "name": "9600pro mt6995z v2 10.36x12.54x0.jpg",
+      "size": 11817356,
+      "addedAt": "2026-09-30T12:50:34.813Z",
+      "w": 10000,
+      "h": 8810,
+      "src": "images/dieshot/mediatek/muo3sgch-9600pro-mt6995z-v2-10.36x12.54x0.jpg",
+      "file": "images/dieshot/mediatek/muo3sgch-9600pro-mt6995z-v2-10.36x12.54x0.jpg",
+      "thumb": "images/dieshot/mediatek/muo3sgch-9600pro-mt6995z-v2-10.36x12.54x0.thumb.jpg"
+    },
+    {
       "id": "imumvai3ucs53d",
       "title": "Snapdragon 8 Elite Extreme Gen6",
       "desc": "TSMC N2P GAA",
