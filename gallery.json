@@ -19,6 +19,23 @@
   },
   "items": [
     {
+      "id": "imuo3tttudsfa0",
+      "coll": "dieshot",
+      "title": "Dimensity 9600 Pro ES",
+      "desc": "TSMC N2P GAA",
+      "tags": [
+        "MediaTek"
+      ],
+      "name": "9600pro mt6995z ES  10.47x12.80x0.jpg",
+      "size": 15635365,
+      "addedAt": "2026-09-30T12:51:38.946Z",
+      "w": 10001,
+      "h": 8844,
+      "src": "images/dieshot/mediatek/muo3tttu-9600pro-mt6995z-ES-10.47x12.80x0.jpg",
+      "file": "images/dieshot/mediatek/muo3tttu-9600pro-mt6995z-ES-10.47x12.80x0.jpg",
+      "thumb": "images/dieshot/mediatek/muo3tttu-9600pro-mt6995z-ES-10.47x12.80x0.thumb.jpg"
+    },
+    {
       "id": "imuo3sgcdv0vsw",
       "coll": "dieshot",
       "title": "Dimensity 9600 Pro",
