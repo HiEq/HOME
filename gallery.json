@@ -20,20 +20,19 @@
   "items": [
     {
       "id": "imumvai3ucs53d",
-      "coll": "dieshot",
       "title": "Snapdragon 8 Elite Extreme Gen6",
       "desc": "TSMC N2P GAA",
       "tags": [
         "Qualcomm"
       ],
+      "src": "images/dieshot/qualcomm/mumvai3w-8-Elite-Extreme-Gen6-sm8975-12.42x10.76x0.jpg",
+      "thumb": "images/dieshot/qualcomm/mumvai3w-8-Elite-Extreme-Gen6-sm8975-12.42x10.76x0.thumb.jpg",
+      "file": "images/dieshot/qualcomm/mumvai3w-8-Elite-Extreme-Gen6-sm8975-12.42x10.76x0.jpg",
       "name": "8 Elite Extreme Gen6 sm8975 12.42x10.76x0.jpg",
       "size": 13218179,
-      "addedAt": "2026-09-29T16:04:54.186Z",
       "w": 10557,
       "h": 10116,
-      "src": "images/dieshot/qualcomm/mumvai3w-8-Elite-Extreme-Gen6-sm8975-12.42x10.76x0.jpg",
-      "file": "images/dieshot/qualcomm/mumvai3w-8-Elite-Extreme-Gen6-sm8975-12.42x10.76x0.jpg",
-      "thumb": "images/dieshot/qualcomm/mumvai3w-8-Elite-Extreme-Gen6-sm8975-12.42x10.76x0.thumb.jpg"
+      "addedAt": "2026-09-29T16:04:54.186Z"
     },
     {
       "id": "imumfo3hpfx7ac",
@@ -2402,22 +2401,6 @@
       "w": 8414,
       "h": 7850,
       "addedAt": "2025-02-02T14:22:06.000Z"
-    },
-    {
-      "id": "ds-hcgt-139",
-      "title": "Dimensity 9600Pro ES",
-      "desc": "TSMC N2P GAA",
-      "tags": [
-        "MediaTek"
-      ],
-      "src": "images/dieshot/mediatek/9600pro-mt6995z-10.47x12.80x0-hcgt.jpg",
-      "thumb": "images/dieshot/mediatek/9600pro-mt6995z-10.47x12.80x0-hcgt.thumb.jpg",
-      "file": "images/dieshot/mediatek/9600pro-mt6995z-10.47x12.80x0-hcgt.jpg",
-      "name": "9600pro mt6995z  10.47x12.80x0.jpg",
-      "size": 1938530,
-      "w": 10532,
-      "h": 9313,
-      "addedAt": "2026-09-21T17:06:00.968Z"
     },
     {
       "id": "ds-rfw9-140",
