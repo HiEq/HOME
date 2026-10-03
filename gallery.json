@@ -19,38 +19,53 @@
   },
   "items": [
     {
-      "id": "imuo3tttudsfa0",
+      "id": "imus2jj2gfa3bq",
       "coll": "dieshot",
+      "title": "Ice Lake D",
+      "desc": "Intel 10nm",
+      "tags": [
+        "Intel"
+      ],
+      "name": "IMG_20261001_230751.png",
+      "size": 18396125,
+      "addedAt": "2026-10-03T07:26:43.528Z",
+      "w": 3217,
+      "h": 2777,
+      "src": "images/dieshot/intel/mus2jj2g-IMG_20261001_230751.png",
+      "file": "images/dieshot/intel/mus2jj2g-IMG_20261001_230751.png",
+      "thumb": "images/dieshot/intel/mus2jj2g-IMG_20261001_230751.thumb.jpg"
+    },
+    {
+      "id": "imuo3tttudsfa0",
       "title": "Dimensity 9600 Pro ES",
       "desc": "TSMC N2P GAA",
       "tags": [
         "MediaTek"
       ],
+      "src": "images/dieshot/mediatek/muo3tttu-9600pro-mt6995z-ES-10.47x12.80x0.jpg",
+      "thumb": "images/dieshot/mediatek/muo3tttu-9600pro-mt6995z-ES-10.47x12.80x0.thumb.jpg",
+      "file": "images/dieshot/mediatek/muo3tttu-9600pro-mt6995z-ES-10.47x12.80x0.jpg",
       "name": "9600pro mt6995z ES  10.47x12.80x0.jpg",
       "size": 15635365,
-      "addedAt": "2026-09-30T12:51:38.946Z",
       "w": 10001,
       "h": 8844,
-      "src": "images/dieshot/mediatek/muo3tttu-9600pro-mt6995z-ES-10.47x12.80x0.jpg",
-      "file": "images/dieshot/mediatek/muo3tttu-9600pro-mt6995z-ES-10.47x12.80x0.jpg",
-      "thumb": "images/dieshot/mediatek/muo3tttu-9600pro-mt6995z-ES-10.47x12.80x0.thumb.jpg"
+      "addedAt": "2026-09-30T12:51:38.946Z"
     },
     {
       "id": "imuo3sgcdv0vsw",
-      "coll": "dieshot",
       "title": "Dimensity 9600 Pro",
       "desc": "TSMC N2P GAA",
       "tags": [
         "MediaTek"
       ],
+      "src": "images/dieshot/mediatek/muo3sgch-9600pro-mt6995z-v2-10.36x12.54x0.jpg",
+      "thumb": "images/dieshot/mediatek/muo3sgch-9600pro-mt6995z-v2-10.36x12.54x0.thumb.jpg",
+      "file": "images/dieshot/mediatek/muo3sgch-9600pro-mt6995z-v2-10.36x12.54x0.jpg",
       "name": "9600pro mt6995z v2 10.36x12.54x0.jpg",
       "size": 11817356,
-      "addedAt": "2026-09-30T12:50:34.813Z",
       "w": 10000,
       "h": 8810,
-      "src": "images/dieshot/mediatek/muo3sgch-9600pro-mt6995z-v2-10.36x12.54x0.jpg",
-      "file": "images/dieshot/mediatek/muo3sgch-9600pro-mt6995z-v2-10.36x12.54x0.jpg",
-      "thumb": "images/dieshot/mediatek/muo3sgch-9600pro-mt6995z-v2-10.36x12.54x0.thumb.jpg"
+      "addedAt": "2026-09-30T12:50:34.813Z"
     },
     {
       "id": "imumvai3ucs53d",
