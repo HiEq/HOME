@@ -19,6 +19,23 @@
   },
   "items": [
     {
+      "id": "imus2lrv0hqoil",
+      "coll": "dieshot",
+      "title": "Ice Lake D",
+      "desc": "Intel 10nm",
+      "tags": [
+        "Intel"
+      ],
+      "name": "IMG_20261001_230751.png",
+      "size": 14337366,
+      "addedAt": "2026-10-03T07:28:28.236Z",
+      "w": 3517,
+      "h": 3179,
+      "src": "images/dieshot/intel/mus2lrv0-IMG_20261001_230751.png",
+      "file": "images/dieshot/intel/mus2lrv0-IMG_20261001_230751.png",
+      "thumb": "images/dieshot/intel/mus2lrv0-IMG_20261001_230751.thumb.jpg"
+    },
+    {
       "id": "imus2jj2gfa3bq",
       "coll": "dieshot",
       "title": "Ice Lake D",
