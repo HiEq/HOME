@@ -36,23 +36,6 @@
       "thumb": "images/dieshot/intel/mus2lrv0-IMG_20261001_230751.thumb.jpg"
     },
     {
-      "id": "imus2jj2gfa3bq",
-      "coll": "dieshot",
-      "title": "Ice Lake D",
-      "desc": "Intel 10nm",
-      "tags": [
-        "Intel"
-      ],
-      "name": "IMG_20261001_230751.png",
-      "size": 18396125,
-      "addedAt": "2026-10-03T07:26:43.528Z",
-      "w": 3217,
-      "h": 2777,
-      "src": "images/dieshot/intel/mus2jj2g-IMG_20261001_230751.png",
-      "file": "images/dieshot/intel/mus2jj2g-IMG_20261001_230751.png",
-      "thumb": "images/dieshot/intel/mus2jj2g-IMG_20261001_230751.thumb.jpg"
-    },
-    {
       "id": "imuo3tttudsfa0",
       "title": "Dimensity 9600 Pro ES",
       "desc": "TSMC N2P GAA",
