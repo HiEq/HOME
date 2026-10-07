@@ -19,21 +19,37 @@
   },
   "items": [
     {
-      "id": "imus2lrv0hqoil",
+      "id": "imuy5wd4x574is",
       "coll": "dieshot",
+      "title": "M6",
+      "desc": "TSMC N2 GAA",
+      "tags": [
+        "Apple Silicon"
+      ],
+      "name": "Apple Silicon M6 Soc.png",
+      "size": 9972660,
+      "addedAt": "2026-10-07T13:47:18.273Z",
+      "w": 2541,
+      "h": 2372,
+      "src": "images/dieshot/apple-silicon/muy5wd4z-Apple-Silicon-M6-Soc.png",
+      "file": "images/dieshot/apple-silicon/muy5wd4z-Apple-Silicon-M6-Soc.png",
+      "thumb": "images/dieshot/apple-silicon/muy5wd4z-Apple-Silicon-M6-Soc.thumb.jpg"
+    },
+    {
+      "id": "imus2lrv0hqoil",
       "title": "Ice Lake D",
       "desc": "Intel 10nm",
       "tags": [
         "Intel"
       ],
+      "src": "images/dieshot/intel/mus2lrv0-IMG_20261001_230751.png",
+      "thumb": "images/dieshot/intel/mus2lrv0-IMG_20261001_230751.thumb.jpg",
+      "file": "images/dieshot/intel/mus2lrv0-IMG_20261001_230751.png",
       "name": "IMG_20261001_230751.png",
       "size": 14337366,
-      "addedAt": "2026-10-03T07:28:28.236Z",
       "w": 3517,
       "h": 3179,
-      "src": "images/dieshot/intel/mus2lrv0-IMG_20261001_230751.png",
-      "file": "images/dieshot/intel/mus2lrv0-IMG_20261001_230751.png",
-      "thumb": "images/dieshot/intel/mus2lrv0-IMG_20261001_230751.thumb.jpg"
+      "addedAt": "2026-10-03T07:28:28.236Z"
     },
     {
       "id": "imuo3tttudsfa0",
