@@ -19,6 +19,23 @@
   },
   "items": [
     {
+      "id": "imv3m9yefkabzi",
+      "coll": "dieshot",
+      "title": "DIGIC X",
+      "desc": "Unknow",
+      "tags": [
+        "Canon"
+      ],
+      "name": "DIGIC X 11.86x8.68x0.09mm...jpg",
+      "size": 3673605,
+      "addedAt": "2026-10-11T09:24:37.095Z",
+      "w": 5792,
+      "h": 7863,
+      "src": "images/dieshot/canon/mv3m9yef-DIGIC-X-11.86x8.68x0.09mm.jpg",
+      "file": "images/dieshot/canon/mv3m9yef-DIGIC-X-11.86x8.68x0.09mm.jpg",
+      "thumb": "images/dieshot/canon/mv3m9yef-DIGIC-X-11.86x8.68x0.09mm.thumb.jpg"
+    },
+    {
       "id": "imv3m9e3cdhplg",
       "coll": "dieshot",
       "title": "DIGIC Accelerator",
