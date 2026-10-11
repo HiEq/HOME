@@ -5,7 +5,11 @@
     "sub": "Die Shot 裸片图库：{tags} 家厂商 · {items} 张裸片显微影像。",
     "brand": "HiEq",
     "avatar": "https://github.com/HiEq.png?size=64",
-    "bg": "images/home-bg.jpg"
+    "bg": "images/home-bg.jpg",
+    "bgFocus": {
+      "x": 52,
+      "y": 51
+    }
   },
   "config": {
     "adminHash": "p1$200000$6em9zNmGHPI4zpQQ7Q/dLQ==$MGxYChxF2xNmtl+J/4vD+BPtuxPUne7SOg9QJZ36X1o=",
@@ -20,37 +24,35 @@
   "items": [
     {
       "id": "imv3m9yefkabzi",
-      "coll": "dieshot",
       "title": "DIGIC X",
       "desc": "Unknow",
       "tags": [
         "Canon"
       ],
+      "src": "images/dieshot/canon/mv3m9yef-DIGIC-X-11.86x8.68x0.09mm.jpg",
+      "thumb": "images/dieshot/canon/mv3m9yef-DIGIC-X-11.86x8.68x0.09mm.thumb.jpg",
+      "file": "images/dieshot/canon/mv3m9yef-DIGIC-X-11.86x8.68x0.09mm.jpg",
       "name": "DIGIC X 11.86x8.68x0.09mm...jpg",
       "size": 3673605,
-      "addedAt": "2026-10-11T09:24:37.095Z",
       "w": 5792,
       "h": 7863,
-      "src": "images/dieshot/canon/mv3m9yef-DIGIC-X-11.86x8.68x0.09mm.jpg",
-      "file": "images/dieshot/canon/mv3m9yef-DIGIC-X-11.86x8.68x0.09mm.jpg",
-      "thumb": "images/dieshot/canon/mv3m9yef-DIGIC-X-11.86x8.68x0.09mm.thumb.jpg"
+      "addedAt": "2026-10-11T09:24:37.095Z"
     },
     {
       "id": "imv3m9e3cdhplg",
-      "coll": "dieshot",
       "title": "DIGIC Accelerator",
       "desc": "Unknow",
       "tags": [
         "Canon"
       ],
+      "src": "images/dieshot/canon/mv3m9e3d-DIGIC-Accelerator-10.19x9.48x0.11mm.jpg",
+      "thumb": "images/dieshot/canon/mv3m9e3d-DIGIC-Accelerator-10.19x9.48x0.11mm.thumb.jpg",
+      "file": "images/dieshot/canon/mv3m9e3d-DIGIC-Accelerator-10.19x9.48x0.11mm.jpg",
       "name": "DIGIC Accelerator 10.19x9.48x0.11mm...jpg",
       "size": 3206068,
-      "addedAt": "2026-10-11T09:24:10.776Z",
       "w": 6766,
       "h": 6304,
-      "src": "images/dieshot/canon/mv3m9e3d-DIGIC-Accelerator-10.19x9.48x0.11mm.jpg",
-      "file": "images/dieshot/canon/mv3m9e3d-DIGIC-Accelerator-10.19x9.48x0.11mm.jpg",
-      "thumb": "images/dieshot/canon/mv3m9e3d-DIGIC-Accelerator-10.19x9.48x0.11mm.thumb.jpg"
+      "addedAt": "2026-10-11T09:24:10.776Z"
     },
     {
       "id": "imuy5wd4x574is",
