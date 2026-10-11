@@ -860,7 +860,7 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
   .grid{grid-template-columns:repeat(2,1fr);gap:12px}
   .grid{grid-template-columns:repeat(2,1fr);gap:12px}   /* 一排两个缩略预览 */
   .wrap{padding-left:32px;padding-right:32px}         /* 仅左右留白：不能用简写，否则会清掉纵向间距 */
-  .home-bg{background-position:80% center}             /* 竖屏裁切窗右移：船中人物占主体 */
+  .home-bg{background-position:center}                /* 焦点由 JS 按主体识别结果设置 */
   .misc-wall{height:calc(100vh - 190px);height:calc(100dvh - 190px);min-height:340px;padding:0 28px 70px}
   .misc-list{padding:0 28px 70px;grid-template-columns:repeat(2,1fr);gap:10px}
   .misc-cell .cap{font-size:12px}
@@ -2385,6 +2385,9 @@ function renderHome(){
   }
   $('footName').textContent = state.site.foot || 'HiEQ';
   $('footYear').textContent = '© ' + new Date().getFullYear();
+  /* 焦点（主体识别结果）：cover 裁切对准主体，竖屏/手机不再死板居中 */
+  var f = (state.site && state.site.bgFocus) || {x: 50, y: 50};
+  $('homeBg').style.backgroundPosition = (Number(f.x) || 50) + '% ' + (Number(f.y) || 50) + '%';
   fitHomeTitle();      /* 标题字号自动适配到方框内（与按钮行等宽） */
 }
 /* （展示条随机抽取 / 自动滚动引擎已随个人主页改版移除） */
@@ -3484,6 +3487,9 @@ function renderTurnstile(box, onOk){
   s.onload = start;
   document.head.appendChild(s);
 }
+function resetTurnstile(){
+  try{ if(window.turnstile && window.turnstile.reset) window.turnstile.reset(); }catch(e){}
+}
 /* 进站闸门：Turnstile 通过后放行，本机 24 小时内不再询问 */
 function initGate(){
   var gate = $('gate');
@@ -3999,13 +4005,56 @@ async function syncToGitHub(){
 
 /* ---------- 导出 ---------- */
 /* 更换主页背景：立即本地预览；仓库模式上传到 images/bg/ 并写入 site.bg，本机模式存 IndexedDB */
+/* 自动识别图片主体：用「边缘能量」找画面里最热闹的区域，返回 0~100 的焦点百分比。
+   有了焦点，竖屏/手机上 cover 裁切就会自动对准主体，而不是死板地居中 */
+function detectFocalPoint(img){
+  try{
+    var W = 64, H = 40;
+    var cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    var ctx = cv.getContext('2d');
+    ctx.drawImage(img, 0, 0, W, H);
+    var d = ctx.getImageData(0, 0, W, H).data;
+    var gray = new Float32Array(W * H);
+    for(var i = 0, p = 0; p < W * H; p++, i += 4){
+      gray[p] = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+    }
+    var sx = 0, sy = 0, sw = 0;
+    for(var y = 1; y < H - 1; y++){
+      for(var x = 1; x < W - 1; x++){
+        var o = y * W + x;
+        var gx = gray[o + 1] - gray[o - 1];
+        var gy = gray[o + W] - gray[o - W];
+        var e = Math.sqrt(gx * gx + gy * gy);     /* 边缘强度 = 细节密度 */
+        sx += e * x; sy += e * y; sw += e;
+      }
+    }
+    if(sw <= 0) return {x: 50, y: 50};
+    return {
+      x: Math.max(0, Math.min(100, Math.round(sx / sw / (W - 1) * 100))),
+      y: Math.max(0, Math.min(100, Math.round(sy / sw / (H - 1) * 100)))
+    };
+  }catch(e){ return {x: 50, y: 50}; }
+}
 async function applyHomeBg(file){
   try{
     var localUrl = URL.createObjectURL(file);
     $('homeBg').style.backgroundImage = 'url("' + localUrl + '")';   /* 秒级预览 */
+    /* 先算主体焦点：竖屏/手机裁切时对准它，而不是死板居中 */
+    var focus = {x: 50, y: 50};
+    try{
+      var probe = await new Promise(function(res, rej){
+        var im = new Image();
+        im.onload = function(){ res(im); };
+        im.onerror = rej;
+        im.src = localUrl;
+      });
+      focus = detectFocalPoint(probe);
+    }catch(e){}
     if(ghReady()){
-      var ext = (String(file.name).match(/\.[a-z0-9]+$/i) || ['.jpg'])[0].toLowerCase();
-      var path = 'images/bg/home-bg-' + Date.now().toString(36) + ext;
+      /* 与当前背景图同一路径：直接覆盖，不再往仓库里堆积新文件 */
+      var path = state.site.bg;
+      if(!path || path === 'idb:site:bg' || path.indexOf('images/') !== 0) path = 'images/home-bg.jpg';
       var put = await ghPutFile(path, await file.arrayBuffer(), 'update home background');
       if(!put.ok) throw new Error((put.data && put.data.message) || ('HTTP ' + put.status));
       state.site.bg = path;
@@ -4015,6 +4064,7 @@ async function applyHomeBg(file){
       state.site.bg = 'idb:site:bg';
       state._bgUrl = localUrl;
     }
+    state.site.bgFocus = focus;
     await saveManifest('update site.bg');
     $('bgHint').textContent = fmtTpl(t('当前：{v}'), {v: state.site.bg});
     renderHome();
