@@ -19,21 +19,37 @@
   },
   "items": [
     {
-      "id": "imuy5wd4x574is",
+      "id": "imv3m9e3cdhplg",
       "coll": "dieshot",
+      "title": "DIGIC Accelerator",
+      "desc": "Unknow",
+      "tags": [
+        "Canon"
+      ],
+      "name": "DIGIC Accelerator 10.19x9.48x0.11mm...jpg",
+      "size": 3206068,
+      "addedAt": "2026-10-11T09:24:10.776Z",
+      "w": 6766,
+      "h": 6304,
+      "src": "images/dieshot/canon/mv3m9e3d-DIGIC-Accelerator-10.19x9.48x0.11mm.jpg",
+      "file": "images/dieshot/canon/mv3m9e3d-DIGIC-Accelerator-10.19x9.48x0.11mm.jpg",
+      "thumb": "images/dieshot/canon/mv3m9e3d-DIGIC-Accelerator-10.19x9.48x0.11mm.thumb.jpg"
+    },
+    {
+      "id": "imuy5wd4x574is",
       "title": "M6",
       "desc": "TSMC N2 GAA",
       "tags": [
         "Apple Silicon"
       ],
+      "src": "images/dieshot/apple-silicon/muy5wd4z-Apple-Silicon-M6-Soc.png",
+      "thumb": "images/dieshot/apple-silicon/muy5wd4z-Apple-Silicon-M6-Soc.thumb.jpg",
+      "file": "images/dieshot/apple-silicon/muy5wd4z-Apple-Silicon-M6-Soc.png",
       "name": "Apple Silicon M6 Soc.png",
       "size": 9972660,
-      "addedAt": "2026-10-07T13:47:18.273Z",
       "w": 2541,
       "h": 2372,
-      "src": "images/dieshot/apple-silicon/muy5wd4z-Apple-Silicon-M6-Soc.png",
-      "file": "images/dieshot/apple-silicon/muy5wd4z-Apple-Silicon-M6-Soc.png",
-      "thumb": "images/dieshot/apple-silicon/muy5wd4z-Apple-Silicon-M6-Soc.thumb.jpg"
+      "addedAt": "2026-10-07T13:47:18.273Z"
     },
     {
       "id": "imus2lrv0hqoil",
