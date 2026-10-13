@@ -1079,7 +1079,7 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
     <div class="foot-links">
       <span>友情链接</span>
       <span class="sep">·</span>
-      <a href="https://raku404.com/" target="_blank" rel="noopener">羽梦千景</a>
+      <a href="https://raku404.com/#aboutme" target="_blank" rel="noopener">羽梦千景</a>
       <span class="sep">·</span>
       <a href="http://yieeesh.com/" target="_blank" rel="noopener">Yieeesh</a>
     </div>
@@ -3471,7 +3471,7 @@ function renderTurnstile(box, onOk){
   if(!box) return;
   if(!TURNSTILE_SITEKEY){ box.innerHTML = ''; if(onOk) onOk(true); return; }   /* 未配置 → 直接放行 */
   var opts = {sitekey: TURNSTILE_SITEKEY, theme: 'auto'};
-  if(onOk) opts.callback = function(){ onOk(true); };
+  if(onOk) opts.callback = function(token){ onOk(true, token); };
   var start = function(){
     try{
       if(window.turnstile && window.turnstile.render){ box.innerHTML = ''; window.turnstile.render(box, opts); }
@@ -3499,10 +3499,28 @@ function initGate(){
   if(stamp && (Date.now() - stamp) < 24 * 3600 * 1000) return;   /* 24 小时内已验过 */
   gate.hidden = false;
   document.body.classList.add('gate-lock');
-  var pass = function(){
+  var enter = function(){
     try{ localStorage.setItem('layout.human', String(Date.now())); }catch(e){}
     gate.hidden = true;
     document.body.classList.remove('gate-lock');
+  };
+  /* 令牌交给服务端 siteverify 校验，通过才放行；无后端/网络异常时放行，绝不把真人卡死 */
+  var pass = async function(ok, token){
+    if(!TURNSTILE_SITEKEY || !token){ enter(); return; }
+    try{
+      var r = await fetch('/api/verify', {
+        method:'POST', cache:'no-store',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({token: token})
+      });
+      if(r.status === 404 || r.status === 405){ enter(); return; }   /* 没有后端 → 直接放行 */
+      var d = await r.json();
+      if(r.ok && d && d.ok){ enter(); return; }
+    }catch(e){ enter(); return; }
+    /* 服务端拒绝 → 重新挑战 */
+    try{ if(window.turnstile && window.turnstile.reset) window.turnstile.reset(); }catch(e){}
+    var retry = $('gateRetry');
+    if(retry) retry.classList.remove('hidden');
   };
   var retry = $('gateRetry');
   if(retry) retry.addEventListener('click', function(){

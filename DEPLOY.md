@@ -37,6 +37,8 @@
 | `SESSION_SECRET` | 随机长串，如 `openssl rand -hex 32` 生成 | **Secret** |
 | `GITHUB_TOKEN` | 仅勾选 `Contents: Read and write` 的 Fine-grained PAT（只授权本仓库） | **Secret** |
 | `GH_REPO` | `HiEq/HOME` | Text |
+| `TURNSTILE_SECRET` | Turnstile 的 Secret Key（进站人机验证的服务端校验） | **Secret** |
+| `TURNSTILE_HOSTNAMES` | `hieq-home404.pages.dev`（可选：只接受该前端域名的验证结果） | Text |
 
 改完点一次 **Retry deployment**（或随便推一个提交）让它生效。
 
