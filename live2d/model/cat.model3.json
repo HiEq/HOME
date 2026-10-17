@@ -1,31 +1,53 @@
 {
 	"Version": 3,
 	"FileReferences": {
-		"Moc": "HEiQ.moc3",
+		"Moc": "HEiQController.moc3",
 		"Textures": [
-			"HEiQ.1024/texture_00.png"
+			"HEiQController.1024/texture_00.png",
+			"HEiQController.1024/texture_01.png",
+			"HEiQController.1024/texture_02.png",
+			"HEiQController.1024/texture_03.png"
 		],
-		"Physics": "HEiQ.physics3.json",
-		"DisplayInfo": "HEiQ.cdi3.json",
+		"Physics": "HEiQController.physics3.json",
+		"Pose": "cat.pose3.json",
+		"DisplayInfo": "HEiQController.cdi3.json",
 		"Expressions": [
-			{ "Name": "expression1", "File": "expression1.exp3.json" },
-			{ "Name": "expression2", "File": "expression2.exp3.json" },
-			{ "Name": "expression3", "File": "expression3.exp3.json" },
-			{ "Name": "expression4", "File": "expression4.exp3.json" },
-			{ "Name": "expression5", "File": "expression5.exp3.json" },
-			{ "Name": "expression6", "File": "expression6.exp3.json" }
+			{
+				"Name": "expression1",
+				"File": "expression1.exp3.json"
+			},
+			{
+				"Name": "expression2",
+				"File": "expression2.exp3.json"
+			},
+			{
+				"Name": "expression3",
+				"File": "expression3.exp3.json"
+			},
+			{
+				"Name": "expression4",
+				"File": "expression4.exp3.json"
+			},
+			{
+				"Name": "expression5",
+				"File": "expression5.exp3.json"
+			},
+			{
+				"Name": "expression6",
+				"File": "expression6.exp3.json"
+			}
 		]
 	},
 	"Groups": [
 		{
 			"Target": "Parameter",
-			"Name": "LipSync",
+			"Name": "EyeBlink",
 			"Ids": []
 		},
 		{
 			"Target": "Parameter",
-			"Name": "EyeBlink",
-			"Ids": ["ParamEyeLOpen", "ParamEyeROpen"]
+			"Name": "LipSync",
+			"Ids": []
 		}
 	],
 	"HitAreas": []

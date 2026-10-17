@@ -12,24 +12,54 @@
 			"Name": "角度 Y"
 		},
 		{
-			"Id": "ParamMouseX",
+			"Id": "CatParamLeftHandDown",
 			"GroupId": "ParamGroup",
-			"Name": "鼠标X"
+			"Name": "左手按下"
 		},
 		{
-			"Id": "ParamMouseY",
+			"Id": "CatParamRightHandDown",
 			"GroupId": "ParamGroup",
-			"Name": "鼠标Y"
+			"Name": "右手按下"
 		},
 		{
-			"Id": "ParamMouseLeftDown",
+			"Id": "CatParamStickLeftDown",
 			"GroupId": "ParamGroup",
-			"Name": "左键"
+			"Name": "左摇杆点亮"
 		},
 		{
-			"Id": "ParamMouseRightDown",
+			"Id": "CatParamStickRightDown",
 			"GroupId": "ParamGroup",
-			"Name": "右键"
+			"Name": "右摇杆点亮"
+		},
+		{
+			"Id": "CatParamStickShowLeftHand",
+			"GroupId": "ParamGroup",
+			"Name": "显示遥感左手"
+		},
+		{
+			"Id": "CatParamStickShowRightHand",
+			"GroupId": "ParamGroup",
+			"Name": "显示遥感右手"
+		},
+		{
+			"Id": "CatParamStickLX",
+			"GroupId": "ParamGroup",
+			"Name": "左摇杆X"
+		},
+		{
+			"Id": "CatParamStickLY",
+			"GroupId": "ParamGroup",
+			"Name": "左摇杆Y"
+		},
+		{
+			"Id": "CatParamStickRX",
+			"GroupId": "ParamGroup",
+			"Name": "右摇杆X"
+		},
+		{
+			"Id": "CatParamStickRY",
+			"GroupId": "ParamGroup",
+			"Name": "右摇杆Y"
 		},
 		{
 			"Id": "ParamEyeLOpen",
@@ -40,11 +70,6 @@
 			"Id": "ParamEyeROpen",
 			"GroupId": "ParamGroup",
 			"Name": "右眼"
-		},
-		{
-			"Id": "CatParamLeftHandDown",
-			"GroupId": "ParamGroup",
-			"Name": "键盘按下"
 		},
 		{
 			"Id": "Param11",
@@ -186,10 +211,6 @@
 		{
 			"Id": "Part8",
 			"Name": "左眼睛"
-		},
-		{
-			"Id": "Part12",
-			"Name": "鼠标"
 		},
 		{
 			"Id": "Part4",
