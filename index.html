@@ -2936,14 +2936,15 @@ var L2D_SHIFT = 0.05;  /* 向右偏移（按模型宽度比例）：贴近屏幕
    expr = 该模型的表情数量（与 model3.json 里的 Expressions 一一对应）；
    各模型数量不同（HEiQ 6 / NULL 7 / Ysh 6），表情按钮与序号一律按这里 +
    模型实际定义自动适配，换模型不会串号。
-   hideParts = 该模型里要隐藏的图层（Part 名）：HEiQ / NULL 是「鼠标模式」的模型，
-   自带一块鼠标垫（数位板）图层，而 Ysh（手柄模式）没有 —— 为保持三个一致，
-   运行时把这两块垫子隐藏掉（.moc3 是二进制、改图层要 Cubism Editor，所以不改文件）。
-   名字是两个模型里各自实测出来的：隐藏 HEiQ 的 Part12 / NULL 的 Part20 后，
-   垫子区域的灰色像素从 ~4700 / ~2100 掉到 ~1000，而其它图层都不受影响。 */
+   hideParts / hideDrawables = 该模型里要隐藏的图层：HEiQ / NULL 是「鼠标模式」的模型，
+   自带一块鼠标垫（数位板）+ 一条伸到垫子上的手臂，而 Ysh（手柄模式）两只爪子是收在身前的
+   —— 为保持三个姿势一致，运行时把垫子和那条手臂一起隐藏掉（.moc3 是二进制、
+   改图层要 Cubism Editor，所以不改文件）。
+   名字都是实测出来的：HEiQ 垫子=Part12 / 手臂=ArtMesh38，NULL 垫子=Part20 / 手臂=ArtMesh71
+   （这两个模型的手臂都没归进 Part，只能按 drawable 关）。 */
 var L2D_MODELS = [
-  {id:'heiq', name:'HEiQ', url:'live2d/model/cat.model3.json', expr:6, hideParts:['Part12']},
-  {id:'null', name:'NULL', url:'live2d/model/null/cat.model3.json', expr:7, hideParts:['Part20']},
+  {id:'heiq', name:'HEiQ', url:'live2d/model/cat.model3.json', expr:6, hideParts:['Part12'], hideDrawables:['ArtMesh38']},
+  {id:'null', name:'NULL', url:'live2d/model/null/cat.model3.json', expr:7, hideParts:['Part20'], hideDrawables:['ArtMesh71']},
   {id:'ysh', name:'Ysh', url:'live2d/model/ysh/cat.model3.json', expr:6}
 ];
 var L2D_DEFAULT_MODEL = 'heiq';   /* 未配置时的默认模型（访客看到的就是它） */
@@ -2987,15 +2988,18 @@ function l2dResize(){
   }
   l2dFit();
 }
-/* ---------- 隐藏模型图层（Part）：让 HEiQ / NULL 不再显示自带的鼠标垫 ----------
-   垫子的不透明度由框架每帧重算，所以包一层 internalModel.update：
-   先照常更新（物理 / 眨眼 / 表情都不受影响），再把指定 Part 压回 0。 */
-function l2dHiddenPartIdx(model, def){
-  var names = def && def.hideParts;
+/* ---------- 隐藏模型图层：让 HEiQ / NULL 跟手柄模式的 Ysh 同一个姿势 ----------
+   两件事：
+   1) 隐藏鼠标垫（Part）：HEiQ = Part12，NULL = Part20；
+   2) 隐藏伸到垫子上的那条手臂（drawable）：HEiQ = ArtMesh38，NULL = ArtMesh71 ——
+      这两个模型的手臂没有归到任何 Part 里，只能按 drawable 关。
+   不透明度会被框架每帧重算，所以包一层 internalModel.update：先照常更新
+   （物理 / 眨眼 / 表情都不受影响），再把要隐藏的压回 0。 */
+function l2dHiddenIdx(model, names, kind){
   if(!model || !names || !names.length) return [];
   var cm = model.internalModel && model.internalModel.coreModel;
   var core = cm && (cm._model || cm);
-  var ids = core && core.parts && core.parts.ids;
+  var ids = core && core[kind] && core[kind].ids;
   if(!ids) return [];
   var idx = [];
   for(var i = 0; i < ids.length; i++){
@@ -3003,32 +3007,37 @@ function l2dHiddenPartIdx(model, def){
   }
   return idx;
 }
-function l2dApplyHideParts(model){
-  if(!model || !model._l2dHide || !model._l2dHide.length) return;
-  var cm = model.internalModel && model.internalModel.coreModel;
-  if(!cm) return;
-  var core = cm._model || cm;
-  var ops = core && core.parts && core.parts.opacities;
-  for(var i = 0; i < model._l2dHide.length; i++){
-    var idx = model._l2dHide[i];
-    /* 框架的 setPartOpacityByIndex 会写进它自己的状态表（每帧都会被重新应用），
-       直接写 core 的 opacities 则保证「这一帧渲染前」一定生效，两条都做最稳。
+function l2dApplyHidden(model){
+  if(!model || !model.internalModel) return;
+  var cm = model.internalModel.coreModel;
+  var core = cm && (cm._model || cm);
+  if(!core) return;
+  var i, idx;
+  var parts = model._l2dHideParts || [];
+  var pops = core.parts && core.parts.opacities;
+  for(i = 0; i < parts.length; i++){
+    idx = parts[i];
+    /* 框架的 setPartOpacityByIndex 会写进它自己的状态表，直接写 opacities 保证这一帧生效，两条都做最稳。
        注：Cubism 里父 Part 的不透明度会传给子 Part，但隐藏子 Part 不影响父 Part。 */
     if(typeof cm.setPartOpacityByIndex === 'function') cm.setPartOpacityByIndex(idx, 0);
-    if(ops) ops[idx] = 0;
+    if(pops) pops[idx] = 0;
   }
+  var draws = model._l2dHideDraws || [];
+  var dops = core.drawables && core.drawables.opacities;
+  for(i = 0; i < draws.length; i++) if(dops) dops[draws[i]] = 0;
 }
-function l2dPatchHideParts(model, def){
+function l2dPatchHide(model, def){
   if(!model || !model.internalModel) return;
-  model._l2dHide = l2dHiddenPartIdx(model, def);
-  if(!model._l2dHide.length) return;
+  model._l2dHideParts = l2dHiddenIdx(model, def && def.hideParts, 'parts');
+  model._l2dHideDraws = l2dHiddenIdx(model, def && def.hideDrawables, 'drawables');
+  if(!model._l2dHideParts.length && !model._l2dHideDraws.length) return;
   var im = model.internalModel;
   if(!im._l2dHidePatched){
     im._l2dHidePatched = true;
     var orig = im.update;
-    im.update = function(){ orig.apply(this, arguments); l2dApplyHideParts(model); };
+    im.update = function(){ orig.apply(this, arguments); l2dApplyHidden(model); };
   }
-  l2dApplyHideParts(model);
+  l2dApplyHidden(model);
 }
 /* 载入 / 切换模型：位置、大小等设置原样保留（表情数量随模型不同，按钮与序号自动适配） */
 async function l2dLoadModel(id){
@@ -3046,7 +3055,7 @@ async function l2dLoadModel(id){
   L2D.size = {w: model.width, h: model.height};   /* 原始尺寸先记下（缩放后 model.width 会跟着变） */
   app.stage.addChild(model);
   L2D.model = model; L2D.modelId = def.id; L2D.state = 'ready';
-  l2dPatchHideParts(model, def);           /* 按模型配置隐藏图层（如 HEiQ / NULL 的鼠标垫） */
+  l2dPatchHide(model, def);                /* 按模型配置隐藏图层（鼠标垫 + 伸出去的手臂） */
   l2dFit();                                /* 透明边距裁切 + 定位（按当前盒子适配） */
   applyL2dLayout();                        /* 套用已保存的位置 / 大小（换模型不重置） */
   buildL2dExprChips();                     /* 表情数量随模型变：按钮重建 */
