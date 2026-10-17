@@ -2940,11 +2940,10 @@ var L2D_SHIFT = 0.05;  /* 向右偏移（按模型宽度比例）：贴近屏幕
    自带一块鼠标垫（数位板）+ 一条伸到垫子上的手臂，而 Ysh（手柄模式）两只爪子是收在身前的
    —— 为保持三个姿势一致，运行时把垫子和那条手臂一起隐藏掉（.moc3 是二进制、
    改图层要 Cubism Editor，所以不改文件）。
-   名字都是实测出来的：HEiQ 垫子=Part12 / 手臂=ArtMesh38，NULL 垫子=Part20 / 手臂=ArtMesh71
-   （这两个模型的手臂都没归进 Part，只能按 drawable 关）。 */
+   名字都是实测出来的：HEiQ 垫子=Part12，NULL 垫子=Part20。 */
 var L2D_MODELS = [
-  {id:'heiq', name:'HEiQ', url:'live2d/model/cat.model3.json', expr:6, hideParts:['Part12'], hideDrawables:['ArtMesh38']},
-  {id:'null', name:'NULL', url:'live2d/model/null/cat.model3.json', expr:7, hideParts:['Part20'], hideDrawables:['ArtMesh71']},
+  {id:'heiq', name:'HEiQ', url:'live2d/model/cat.model3.json', expr:6, hideParts:['Part12']},
+  {id:'null', name:'NULL', url:'live2d/model/null/cat.model3.json', expr:7, hideParts:['Part20']},
   {id:'ysh', name:'Ysh', url:'live2d/model/ysh/cat.model3.json', expr:6}
 ];
 var L2D_DEFAULT_MODEL = 'heiq';   /* 未配置时的默认模型（访客看到的就是它） */
