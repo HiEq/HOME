@@ -24,20 +24,19 @@
   "items": [
     {
       "id": "imvgrxpen2bz6y",
-      "coll": "dieshot",
       "title": "Zynq 7035",
       "desc": "TSMC 28nm",
       "tags": [
         "Xilinx"
       ],
+      "src": "images/dieshot/xilinx/mvgrxpeo-Zynq-xc7z035-10.95x16.jpg",
+      "thumb": "images/dieshot/xilinx/mvgrxpeo-Zynq-xc7z035-10.95x16.thumb.jpg",
+      "file": "images/dieshot/xilinx/mvgrxpeo-Zynq-xc7z035-10.95x16.jpg",
       "name": "Zynq++xc7z035+10.95x16.jpg",
       "size": 15626785,
-      "addedAt": "2026-10-20T14:24:03.551Z",
       "w": 11371,
       "h": 8276,
-      "src": "images/dieshot/xilinx/mvgrxpeo-Zynq-xc7z035-10.95x16.jpg",
-      "file": "images/dieshot/xilinx/mvgrxpeo-Zynq-xc7z035-10.95x16.jpg",
-      "thumb": "images/dieshot/xilinx/mvgrxpeo-Zynq-xc7z035-10.95x16.thumb.jpg"
+      "addedAt": "2026-10-20T14:24:03.551Z"
     },
     {
       "id": "imv3m9yefkabzi",
@@ -3786,7 +3785,7 @@
     {
       "id": "ds-16q5-219",
       "title": "Xilinx Versal AI Core",
-      "desc": "Unknow",
+      "desc": "TSMC 7nm",
       "tags": [
         "Xilinx"
       ],
