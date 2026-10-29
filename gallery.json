@@ -23,6 +23,40 @@
   },
   "items": [
     {
+      "id": "imvsx876rhag7z",
+      "coll": "dieshot",
+      "title": "Teraflops Reseach Chip",
+      "desc": "Intel 65nm",
+      "tags": [
+        "Intel"
+      ],
+      "name": "Intel_Teraflops_Reseach_Chip_(Polaris_65nm).jpg",
+      "size": 1235152,
+      "addedAt": "2026-10-29T02:25:25.347Z",
+      "w": 2718,
+      "h": 1589,
+      "src": "images/dieshot/intel/mvsx876r-Intel_Teraflops_Reseach_Chip_-Polaris_65nm.jpg",
+      "file": "images/dieshot/intel/mvsx876r-Intel_Teraflops_Reseach_Chip_-Polaris_65nm.jpg",
+      "thumb": "images/dieshot/intel/mvsx876r-Intel_Teraflops_Reseach_Chip_-Polaris_65nm.thumb.jpg"
+    },
+    {
+      "id": "imvsx85tlkglr5",
+      "coll": "dieshot",
+      "title": "Teraflops Reseach Chip",
+      "desc": "Intel 65nm",
+      "tags": [
+        "Intel"
+      ],
+      "name": "Intel_Teraflops_Reseach_Chip_(Polaris_65nm).jpg",
+      "size": 1235152,
+      "addedAt": "2026-10-29T02:25:23.577Z",
+      "w": 2718,
+      "h": 1589,
+      "src": "images/dieshot/intel/mvsx85tl-Intel_Teraflops_Reseach_Chip_-Polaris_65nm.jpg",
+      "file": "images/dieshot/intel/mvsx85tl-Intel_Teraflops_Reseach_Chip_-Polaris_65nm.jpg",
+      "thumb": "images/dieshot/intel/mvsx85tl-Intel_Teraflops_Reseach_Chip_-Polaris_65nm.thumb.jpg"
+    },
+    {
       "id": "imvgrxpen2bz6y",
       "title": "Zynq 7035",
       "desc": "TSMC 28nm",
