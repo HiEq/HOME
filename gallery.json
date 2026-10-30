@@ -7,8 +7,8 @@
     "avatar": "https://github.com/HiEq.png?size=64",
     "bg": "images/home-bg.jpg",
     "bgFocus": {
-      "x": 50,
-      "y": 52
+      "x": 52,
+      "y": 49
     }
   },
   "config": {
@@ -24,20 +24,19 @@
   "items": [
     {
       "id": "imvsx876rhag7z",
-      "coll": "dieshot",
       "title": "Teraflops Reseach Chip",
       "desc": "Intel 65nm",
       "tags": [
         "Intel"
       ],
+      "src": "images/dieshot/intel/mvsx876r-Intel_Teraflops_Reseach_Chip_-Polaris_65nm.jpg",
+      "thumb": "images/dieshot/intel/mvsx876r-Intel_Teraflops_Reseach_Chip_-Polaris_65nm.thumb.jpg",
+      "file": "images/dieshot/intel/mvsx876r-Intel_Teraflops_Reseach_Chip_-Polaris_65nm.jpg",
       "name": "Intel_Teraflops_Reseach_Chip_(Polaris_65nm).jpg",
       "size": 1235152,
-      "addedAt": "2026-10-29T02:25:25.347Z",
       "w": 2718,
       "h": 1589,
-      "src": "images/dieshot/intel/mvsx876r-Intel_Teraflops_Reseach_Chip_-Polaris_65nm.jpg",
-      "file": "images/dieshot/intel/mvsx876r-Intel_Teraflops_Reseach_Chip_-Polaris_65nm.jpg",
-      "thumb": "images/dieshot/intel/mvsx876r-Intel_Teraflops_Reseach_Chip_-Polaris_65nm.thumb.jpg"
+      "addedAt": "2026-10-29T02:25:25.347Z"
     },
     {
       "id": "imvgrxpen2bz6y",
