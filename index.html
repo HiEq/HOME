@@ -918,11 +918,11 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
 }
 
 /* ---------- FPGA 终端（#/serial）：本机 USB 串口 · 真彩终端 ---------- */
-.serial-top{padding-top:32px}
+.serial-top{padding-top:24px}
 .serial-panel{
   border-radius:20px;background:var(--bg-elev);
   box-shadow:inset 0 0 0 1px var(--hairline), var(--shadow-card);
-  overflow:hidden;margin-bottom:90px;
+  overflow:hidden;margin-bottom:24px;
 }
 .serial-bar{
   display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;
@@ -969,7 +969,8 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
 :root[data-theme="dark"] .serial-hint.is-warn{color:#ffb340}
 .dd-btn[disabled]{opacity:.45;pointer-events:none}
 @media (max-width:720px){
-  .serial-top{padding-top:20px}
+  .serial-top{padding-top:16px}
+  .serial-panel{margin-bottom:12px}
   .serial-term{height:52vh;margin:0 12px}
   .serial-stat{margin-left:0;flex-basis:100%}
 }
@@ -3628,7 +3629,7 @@ var SER = {
   carry:'', dec:null, chunks:[], chunkBytes:0, tail:'',
   keysOn:false, promptOk:false, clockArmed:false, clockDone:false,
   lastHint:'', lastWarn:false,
-  ro:null, fitRq:0
+  ro:null, fitRq:0, fitTimer:0, lastW:0, lastH:0
 };
 
 function serSupported(){
@@ -3731,17 +3732,40 @@ function serMakeTerm(){
   SER.term = term; SER.fit = fit;
   term.write('\x1b[38;5;244m' + tr('── FPGA 终端 ──') + '\x1b[0m\r\n');
   window.addEventListener('resize', serFit);
+  window.addEventListener('orientationchange', serFit);
+  document.addEventListener('visibilitychange', function(){ if(!document.hidden) serFit(); });
   if(window.ResizeObserver){
     try{ SER.ro = new ResizeObserver(serFit); SER.ro.observe(box); }catch(e){}
   }
+  serFit();
+  setTimeout(serFit, 60);
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(serFit).catch(function(){});
+  setTimeout(serFit, 400);   /* 字体晚到 / 布局二次回流后再量一次 */
+  /* 兜底轮询：嵌入面板或后台标签页里 rAF / ResizeObserver 可能被挂起，
+     只有定时器照跑；容器尺寸一变就重新 fit */
+  setInterval(function(){
+    if(!SER.term || !serVisible()) return;
+    var box = $('serTerm');
+    if(!box) return;
+    var w = box.clientWidth, h = box.clientHeight;
+    if(!w || !h || (w === SER.lastW && h === SER.lastH)) return;
+    SER.lastW = w; SER.lastH = h;
+    serFit();
+  }, 500);
 }
 function serFit(){
   if(!SER.fit || !SER.term || !serVisible()) return;
-  if(SER.fitRq) return;
-  SER.fitRq = requestAnimationFrame(function(){
-    SER.fitRq = 0;
+  if(SER.fitTimer) return;
+  var run = function(){
+    SER.fitTimer = 0;
+    if(SER.fitRq){ cancelAnimationFrame(SER.fitRq); SER.fitRq = 0; }
+    if(!SER.fit || !SER.term || !serVisible()) return;
     try{ SER.fit.fit(); }catch(e){}
-  });
+    var box = $('serTerm');
+    if(box){ SER.lastW = box.clientWidth; SER.lastH = box.clientHeight; }
+  };
+  SER.fitRq = requestAnimationFrame(run);
+  SER.fitTimer = setTimeout(run, 120);   /* 后台标签页里 rAF 不跑，定时器兜底 */
 }
 
 /* ---------- 界面 ---------- */
