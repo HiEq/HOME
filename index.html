@@ -918,7 +918,7 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
 }
 
 /* ---------- FPGA 终端（#/serial）：本机 USB 串口 · 真彩终端 ---------- */
-.serial-top{padding-top:24px}
+.serial-top{padding:24px 12px 0}
 .serial-panel{
   border-radius:20px;background:var(--bg-elev);
   box-shadow:inset 0 0 0 1px var(--hairline), var(--shadow-card);
@@ -926,7 +926,7 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
 }
 .serial-bar{
   display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;
-  padding:15px 18px;
+  padding:15px 20px;
 }
 .serial-bar + .serial-bar{border-top:1px solid var(--hairline)}
 .serial-group{display:flex;align-items:center;gap:9px;flex-wrap:wrap;min-width:0}
@@ -939,16 +939,17 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
 .serial-dot{width:8px;height:8px;border-radius:50%;background:var(--fg3);box-shadow:0 0 0 3px rgba(128,128,128,.14);flex:none}
 .serial-dot.is-on{background:#30d158;box-shadow:0 0 0 3px rgba(48,209,88,.18)}
 .serial-term{
-  height:min(58vh,600px);margin:0 18px;padding:11px 8px 11px 14px;
+  height:min(58vh,600px);margin:0 12px;padding:11px 8px;
   border-radius:14px;background:#0a0a0b;overflow:hidden;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);
 }
 .serial-term .xterm{height:100%}
-.serial-term .xterm-viewport{background:transparent !important;overflow-y:auto !important;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent}
-.serial-term .xterm-viewport::-webkit-scrollbar{width:8px;height:8px}
-.serial-term .xterm-viewport::-webkit-scrollbar-track{background:transparent}
-.serial-term .xterm-viewport::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:4px}
-.serial-term .xterm-viewport::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.28)}
+/* 滚动条不占位也不压字：xterm 自己处理滚轮/翻页，全屏程序另有自己的界面 */
+.serial-term .xterm-viewport{
+  background:transparent !important;overflow-y:auto !important;
+  scrollbar-width:none;-ms-overflow-style:none;
+}
+.serial-term .xterm-viewport::-webkit-scrollbar{width:0;height:0;display:none}
 .serial-send{flex:1 1 340px}
 .serial-bar .dd-btn,
 .serial-bar .btn.sm{height:34px;padding:0 15px;font-size:13.5px}
@@ -960,18 +961,21 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
 }
 .serial-input:focus{border-color:var(--blue);background:var(--bg)}
 .serial-input:disabled{opacity:.5}
-.serial-tools{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;padding:14px 18px 6px}
+.serial-tools{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;padding:14px 20px 6px}
 .serial-chk{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--fg2);cursor:pointer;user-select:none}
 .serial-chk input{width:16px;height:16px;margin:0;accent-color:var(--blue)}
 .serial-spacer{flex:1 1 0}
-.serial-hint{padding:10px 18px 16px;font-size:13px;line-height:1.6;color:var(--fg2);min-height:21px}
+.serial-hint{padding:10px 20px 16px;font-size:13px;line-height:1.6;color:var(--fg2);min-height:21px}
 .serial-hint.is-warn{color:#c26a00}
 :root[data-theme="dark"] .serial-hint.is-warn{color:#ffb340}
 .dd-btn[disabled]{opacity:.45;pointer-events:none}
 @media (max-width:720px){
-  .serial-top{padding-top:16px}
+  .serial-top{padding:16px 12px 0}
   .serial-panel{margin-bottom:12px}
-  .serial-term{height:52vh;margin:0 12px}
+  .serial-term{height:52vh;margin:0 10px}
+  .serial-bar{padding:13px 16px}
+  .serial-tools{padding:12px 16px 4px}
+  .serial-hint{padding:8px 16px 14px}
   .serial-stat{margin-left:0;flex-basis:100%}
 }
 
