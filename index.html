@@ -3837,7 +3837,6 @@ function serApplyFit(){
   if(gap > 0) cols = Math.max(2, Math.floor(vp.clientWidth / (cell.width + gap)));
   var rows = Math.max(1, Math.floor(vp.clientHeight / cell.height));
   if(cols !== t.cols || rows !== t.rows){
-  if(cols !== t.cols || rows !== t.rows){
     try{
       if(core._renderService) core._renderService.clear();
       t.resize(cols, rows);
@@ -5412,6 +5411,8 @@ function bind(){
   typeHomeTitle();                         /* 进站逐字打出标题，末尾闪烁 _ */
   scheduleFitHome();                       /* 字体就绪后补算字号与宽度，保证大屏也精确对齐 */
   startStats();                             /* 总访问 + 当前在线：每 20 秒实时刷新 */
+})();
+
 })();
 </script>
 </body>
