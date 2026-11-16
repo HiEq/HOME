@@ -4189,7 +4189,7 @@ function serTrack(s){
     SER.keysOn = true;
     SER.promptOk = false;
   }
-  if(/\x1b\[\?(?:1049|1047|47)l/.test(s)) SER.alt = false;
+  if(/\x1b\[\?(?:1049|1047|47)l/.test(s)){ SER.alt = false; SER.needTty = true; }
   /* 板子重启：看到 bootloader / 内核启动的标志就重新锁上，避免打断 U-Boot */
   if(/\bU-Boot 20\d\d\.\d|Hit any key to stop autoboot|Starting kernel \.\.\.|Freeing unused kernel memory/.test(s)){
     if(serCfg().bootLock){
@@ -4288,8 +4288,9 @@ function serTick(on){
     }
     /* 停在 shell 时把 tty 尺寸对齐一次：btop / fastfetch 读的是 tty，不是网页 */
     if(SER.promptOk && !SER.alt && (SER.needTty || !SER.sizeSynced) && SER.term &&
-       (!cfg.clock || SER.clockDone || !SER.clockArmed) &&
-       now - SER.lastKey > 1200 && now - SER.lastRx > 900){
+       (SER.needTty
+         ? (now - SER.lastKey > 200 && now - SER.lastRx > 150)
+         : (now - SER.lastKey > 700 && now - SER.lastRx > 500))){
       serSyncTty(false);
     }
   }, 500);
