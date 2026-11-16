@@ -917,6 +917,63 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
   body{padding-bottom:calc(86px + env(safe-area-inset-bottom))} /* 内容不被 Dock 遮挡 */
 }
 
+/* ---------- FPGA 终端（#/serial）：本机 USB 串口 · 真彩终端 ---------- */
+.serial-top{padding-top:32px}
+.serial-panel{
+  border-radius:20px;background:var(--bg-elev);
+  box-shadow:inset 0 0 0 1px var(--hairline), var(--shadow-card);
+  overflow:hidden;margin-bottom:90px;
+}
+.serial-bar{
+  display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;
+  padding:15px 18px;
+}
+.serial-bar + .serial-bar{border-top:1px solid var(--hairline)}
+.serial-group{display:flex;align-items:center;gap:9px;flex-wrap:wrap;min-width:0}
+.serial-label{font-size:13px;color:var(--fg2);white-space:nowrap}
+.serial-device{display:inline-block;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.serial-stat{
+  margin-left:auto;display:flex;align-items:center;gap:9px;
+  font-size:13px;color:var(--fg2);font-variant-numeric:tabular-nums;
+}
+.serial-dot{width:8px;height:8px;border-radius:50%;background:var(--fg3);box-shadow:0 0 0 3px rgba(128,128,128,.14);flex:none}
+.serial-dot.is-on{background:#30d158;box-shadow:0 0 0 3px rgba(48,209,88,.18)}
+.serial-term{
+  height:min(58vh,600px);margin:0 18px;padding:11px 8px 11px 14px;
+  border-radius:14px;background:#0a0a0b;overflow:hidden;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);
+}
+.serial-term .xterm{height:100%}
+.serial-term .xterm-viewport{background:transparent !important;overflow-y:auto !important;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.18) transparent}
+.serial-term .xterm-viewport::-webkit-scrollbar{width:8px;height:8px}
+.serial-term .xterm-viewport::-webkit-scrollbar-track{background:transparent}
+.serial-term .xterm-viewport::-webkit-scrollbar-thumb{background:rgba(255,255,255,.14);border-radius:4px}
+.serial-term .xterm-viewport::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.28)}
+.serial-send{flex:1 1 340px}
+.serial-bar .dd-btn,
+.serial-bar .btn.sm{height:34px;padding:0 15px;font-size:13.5px}
+.serial-input{
+  height:34px;flex:1 1 200px;min-width:140px;max-width:420px;
+  border-radius:980px;border:1px solid var(--hairline);background:var(--bg-alt);
+  padding:0 15px;font-size:13.5px;outline:none;
+  transition:border-color .2s,background .2s;
+}
+.serial-input:focus{border-color:var(--blue);background:var(--bg)}
+.serial-input:disabled{opacity:.5}
+.serial-tools{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;padding:14px 18px 6px}
+.serial-chk{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--fg2);cursor:pointer;user-select:none}
+.serial-chk input{width:16px;height:16px;margin:0;accent-color:var(--blue)}
+.serial-spacer{flex:1 1 0}
+.serial-hint{padding:10px 18px 16px;font-size:13px;line-height:1.6;color:var(--fg2);min-height:21px}
+.serial-hint.is-warn{color:#c26a00}
+:root[data-theme="dark"] .serial-hint.is-warn{color:#ffb340}
+.dd-btn[disabled]{opacity:.45;pointer-events:none}
+@media (max-width:720px){
+  .serial-top{padding-top:20px}
+  .serial-term{height:52vh;margin:0 12px}
+  .serial-stat{margin-left:0;flex-basis:100%}
+}
+
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{
     animation-duration:.001ms !important;animation-iteration-count:1 !important;
@@ -924,6 +981,7 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
   }
 }
 </style>
+<link rel="stylesheet" href="vendor/xterm/xterm.css">
 <script>
 /* 主题预置：首次绘制前定好夜间/日间，避免闪白（手动选择优先，否则跟随系统） */
 (function(){
@@ -1060,6 +1118,74 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
         <h3 id="miscEmptyTitle">暂无杂图</h3>
         <p id="miscEmptyText">进入管理模式，即可上传杂图。</p>
         <button class="btn tint sm hidden" id="miscAdminBtn">进入管理模式</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= FPGA 终端（本机 USB 串口 · #/serial） ================= -->
+  <section class="view" id="view-serial">
+    <div class="wrap serial-top">
+      <div class="serial-panel">
+        <div class="empty hidden" id="serLock">
+          <div class="orb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="7" width="18" height="12" rx="3"/><path d="M8 3v4M16 3v4M7 13h4"/></svg></div>
+          <h3>此页面仅在本机可用</h3>
+          <p id="serLockText">请用 Chrome / Edge 打开。</p>
+        </div>
+        <div id="serBody">
+          <div class="serial-bar">
+            <div class="serial-group">
+              <span class="serial-label">端口</span>
+              <button class="dd-btn" id="serPick" title="选择串口设备">
+                <span class="serial-device" id="serDevice">选择设备</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 9l7 7 7-7"/></svg>
+              </button>
+            </div>
+            <div class="serial-group">
+              <span class="serial-label">波特率</span>
+              <div class="dd" id="serBaudDD">
+                <button class="dd-btn" id="serBaudBtn" aria-haspopup="true" aria-expanded="false">
+                  <span id="serBaudLabel">921600</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 9l7 7 7-7"/></svg>
+                </button>
+                <div class="dd-menu" id="serBaudMenu" role="menu"></div>
+              </div>
+            </div>
+            <div class="serial-group">
+              <button class="btn tint sm" id="serConnect">连接</button>
+              <button class="btn ghost sm hidden" id="serDisconnect">断开</button>
+            </div>
+            <div class="serial-stat"><span class="serial-dot" id="serDot"></span><span id="serStat">未连接</span></div>
+          </div>
+
+          <div class="serial-term" id="serTerm"></div>
+
+          <div class="serial-bar">
+            <div class="serial-group serial-send">
+              <span class="serial-label">发送</span>
+              <input class="serial-input" id="serSendText" type="text" placeholder="回车发送" autocomplete="off" spellcheck="false" disabled>
+              <div class="dd" id="serEolDD">
+                <button class="dd-btn" id="serEolBtn" aria-haspopup="true" aria-expanded="false" title="行尾">
+                  <span id="serEolLabel">CR</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M5 9l7 7 7-7"/></svg>
+                </button>
+                <div class="dd-menu" id="serEolMenu" role="menu"></div>
+              </div>
+              <button class="btn ghost sm" id="serSendBtn" disabled>发送</button>
+            </div>
+          </div>
+
+          <div class="serial-tools">
+            <label class="serial-chk"><input type="checkbox" id="serBootLock" checked><span>开机期间锁定按键</span></label>
+            <label class="serial-chk"><input type="checkbox" id="serClock" checked><span>登录后同步本机时间</span></label>
+            <label class="serial-chk"><input type="checkbox" id="serFilter" checked><span>过滤终端应答</span></label>
+            <span class="serial-spacer"></span>
+            <button class="btn ghost sm" id="serSize">发送窗口尺寸</button>
+            <button class="btn ghost sm" id="serCopy">复制选中</button>
+            <button class="btn ghost sm" id="serSave">下载日志</button>
+            <button class="btn ghost sm" id="serClear">清空</button>
+          </div>
+          <div class="serial-hint" id="serHint">插好 USB 串口后点「连接」。</div>
+        </div>
       </div>
     </div>
   </section>
@@ -1436,6 +1562,37 @@ var EN = {
   '桌宠样式设置':'Pet style settings', '访客样式：拖拽调整桌宠（{d}）':'Visitor style: drag the pet ({d})',
   '已恢复默认位置':'Position reset to default', '已放弃 Live2D 的改动':'Live2D changes discarded',
   '先进入管理模式':'Enter admin mode first',
+  /* FPGA 终端 */
+  'FPGA终端':'FPGA Terminal',
+  '端口':'Port', '选择设备':'Choose device', '串口设备':'Serial device', '波特率':'Baud rate',
+  '连接':'Connect', '断开':'Disconnect', '未连接':'Not connected',
+  '发送':'Send', '回车发送':'Enter to send', '行尾':'Line ending',
+  '开机期间锁定按键':'Lock keys during boot', '登录后同步本机时间':'Sync host clock after login',
+  '过滤终端应答':'Filter terminal replies',
+  '发送窗口尺寸':'Send window size', '复制选中':'Copy selection', '下载日志':'Download log', '清空':'Clear',
+  '此页面仅在本机可用':'This page only works on this computer',
+  '插好 USB 串口后点「连接」。':'Plug in the USB serial adapter, then click Connect.',
+  '── FPGA 终端 ──':'── FPGA terminal ──',
+  'Web Serial 需要 HTTPS 或 localhost 页面。':'Web Serial needs an HTTPS or localhost page.',
+  '请用 Chrome / Edge 打开。':'Open this page in Chrome or Edge.',
+  '已取消选择。':'Selection cancelled.',
+  '无法打开串口：可能被 PuTTY 等程序占用。':'Cannot open the port — another program may be using it.',
+  '串口已打开，请先断开。':'Port already open — disconnect first.',
+  '已经连上了，换设备请先断开。':'Already connected — disconnect to switch devices.',
+  '在弹出的列表里选择串口设备…':'Choose a serial device from the list…',
+  '正在打开串口…':'Opening port…',
+  'USB 串口已断开。':'USB serial disconnected.',
+  '已断开串口。':'Serial disconnected.',
+  '开机阶段按键已锁定。':'Keys are locked during boot.',
+  '串口未连接。':'Serial not connected.',
+  '按键输入已解锁。':'Keyboard input unlocked.',
+  '已清空。':'Cleared.',
+  '还没有收到数据。':'No data received yet.',
+  '先拖选要复制的内容。':'Select some text first.',
+  '复制失败。':'Copy failed.',
+  '已复制。':'Copied.',
+  '下次连接时生效。':'Takes effect on the next connection.',
+  '终端组件加载失败。':'Terminal failed to load.',
   '总访问':'Visits', '近 15 分钟访客':'Visitors (15 min)',
   '主页背景已更新':'Background updated',
   '折叠 / 展开模型':'Collapse / expand the model',
@@ -1488,7 +1645,17 @@ var DYN = [
   [/^正在连接…$/, 'Connecting…'],
   [/^请先填写 Token 与仓库名。$/, 'Fill in the token and repository first.'],
   [/^已保存，之后的改动会直接提交到仓库。$/, 'Saved — future changes are committed to the repo.'],
-  [/^已保存，但 Token 或仓库名为空，仍处于本机模式。$/, 'Saved, but token/repo is empty — still in local mode.']
+  [/^已保存，但 Token 或仓库名为空，仍处于本机模式。$/, 'Saved, but token/repo is empty — still in local mode.'],
+  /* FPGA 终端：带变量 / 计数的提示 */
+  [/^已连接 (\d+) 8N1。开机阶段按键锁定，见到提示符后解锁。$/, 'Connected at $1 8N1. Keys locked until the boot prompt.'],
+  [/^已连接 (\d+) 8N1。$/, 'Connected at $1 8N1.'],
+  [/^已收 (.+) · (.+)\/s · 发 (.+)$/, 'RX $1 · $2/s · TX $3'],
+  [/^已保存 (.+) 日志。$/, 'Saved $1 log.'],
+  [/^板子时间已同步为 (.+)。$/, 'Board clock set to $1.'],
+  [/^已发送窗口尺寸 (\d+)×(\d+)。$/, 'Sent window size $1×$2.'],
+  [/^打开串口失败：(.+)$/, 'Cannot open the port: $1'],
+  [/^读取中断：(.+)$/, 'Read interrupted: $1'],
+  [/^发送失败：(.+)$/, 'Send failed: $1']
 ];
 function tr(msg){
   if(LANG !== 'en') return msg;
@@ -1539,6 +1706,7 @@ function setLang(l){
   buildDock();
   route();
   l2dSyncUI();          /* 动态文案（位置 / 表情）随语言重绘 */
+  if(typeof SER !== 'undefined' && SER.uiReady && SER.lastHint) serHint(SER.lastHint, SER.lastWarn);  /* 串口提示按新语言重绘 */
 }
 function uid(){ return 'i' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
 /* 标签 → 文件夹名（与 tools/import-dieshot.js 的 slug 规则一致：Apple Silicon → apple-silicon） */
@@ -1972,7 +2140,8 @@ var NAV = [
       lead:'陈列、浏览与下载全部图片',
       links:[{id:'layout', name:'Layout', desc:'{tags} 家厂商 · {items} 张 Dieshot · 支持搜索与标签筛选'}]
   }},
-  {id:'misc',   label:'杂图',  href:'#/misc',  menu:false}
+  {id:'misc',   label:'杂图',  href:'#/misc',  menu:false},
+  {id:'serial', label:'FPGA终端', href:'#/serial', menu:false}
   /* 以后新增版块：在这里追加一项，并新建对应的视图区块 */
 ];
 
@@ -1980,6 +2149,7 @@ function buildNav(){
   var wrap = $('navMenu');
   wrap.innerHTML = '';
   NAV.forEach(function(n){
+    if(n.id === 'serial' && !serSupported()) return;   /* 不支持 Web Serial 的浏览器（Safari/iPad/手机）无需看到本机专用入口 */
     var a = el('a', 'nav-item' + (n.menu ? ' has-menu' : ''), null);
     a.href = n.href; a.dataset.nav = n.id;
     a.appendChild(document.createTextNode(t(n.label)));
@@ -2285,7 +2455,8 @@ var thumbObserver = ('IntersectionObserver' in window)
 function route(){
   closeMenu();
   var h = (location.hash || '#/').replace(/^#/, '');
-  var name = h.indexOf('/layout') === 0 ? 'layout' : (h.indexOf('/misc') === 0 ? 'misc' : 'home');
+  var name = h.indexOf('/layout') === 0 ? 'layout' : (h.indexOf('/misc') === 0 ? 'misc' :
+             (h.indexOf('/serial') === 0 ? 'serial' : 'home'));
   enterCollection(name === 'misc' ? 'misc' : 'dieshot');   /* 写操作目标随版块切换 */
   Array.prototype.forEach.call(document.querySelectorAll('.view'), function(v){
     v.classList.toggle('is-active', v.id === 'view-' + name);
@@ -2295,7 +2466,9 @@ function route(){
   });
   if(name === 'layout'){ renderGallery(); }
   else if(name === 'misc'){ renderMiscWall(); }
+  else if(name === 'serial'){ serEnter(); }   /* 串口页：懒加载终端、按需适配尺寸 */
   else { renderHome(); }
+  if(name !== 'serial') serLeave();           /* 离开串口页即断开：COM 口是独占的 */
   syncDock();                            /* 底部 Dock 高亮当前版块 */
   if(L2D_EDIT && L2D_EDIT.editing && name !== 'home') l2dEditClose(true);  /* 离开首页 = 认可改动 */
   l2dShow(name === 'home');          /* 桌宠仅首页显示 */
@@ -3425,17 +3598,588 @@ function l2dDragEnd(e){
   try{ if(e && e.pointerId != null) $('l2dCanvas').releasePointerCapture(e.pointerId); }catch(err){}
 }
 
+/* ---------- FPGA 终端（#/serial）：本机 USB 串口 · 真彩终端 ----------
+   链路：开发板 → USB-TTL → Web Serial → xterm.js。
+   行为对齐 LINUX-FPGA\scripts\serial-monitor.ps1：
+     · 921600 8N1，DTR / RTS 关闭（有的板子一拉就复位）
+     · 开机阶段不转发按键，见到 login: 或提示符才解锁（防打断 U-Boot）
+     · 两个方向都丢弃终端应答（ESC[8;行;列t / ESC[行列R / ^[ 记法），
+       否则迟到的那份会被 login 回显成 ^[[8;51;179t
+     · 停在提示符且空闲时，把本机时间推给板子（date -s + fake-hwclock save）
+     · Enter=CR、Ctrl+C 原样发给板子（0x03）
+   日志留在内存（上限 24 MB），点「下载日志」才落盘；设置存 localStorage。 */
+var SER_BAUDS = [921600, 460800, 230400, 115200, 57600, 38400, 19200, 9600];
+var SER_EOLS = [
+  {v:'cr',   label:'CR',   s:'\r'},
+  {v:'lf',   label:'LF',   s:'\n'},
+  {v:'crlf', label:'CRLF', s:'\r\n'},
+  {v:'none', label:'无',   s:''}
+];
+var SER_STORE = 'layout.serial';
+var SER_CHUNK_CAP = 24 * 1024 * 1024;
+var SER_REPLY_RE = /(?:\x1b\[8;[0-9]+;[0-9]+t|\x1b\[[0-9]+;[0-9]+R|\^\[\[8;[0-9]+;[0-9]+t|\^\[\[[0-9]+;[0-9]+R)/g;
+var SER_ANSI_RE = /(?:\x1b\[[0-9;<=>?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)|\x1b[\x30-\x7e])/g;
+
+var SER = {
+  term:null, fit:null, libs:false, libLoading:null, uiReady:false,
+  port:null, reader:null, writer:null, connected:false, closing:false,
+  rx:0, tx:0, t0:0, lastRx:0, lastKey:0,
+  lastTickRx:0, lastTickAt:0, tick:null,
+  carry:'', dec:null, chunks:[], chunkBytes:0, tail:'',
+  keysOn:false, promptOk:false, clockArmed:false, clockDone:false,
+  lastHint:'', lastWarn:false,
+  ro:null, fitRq:0
+};
+
+function serSupported(){
+  try{
+    return !!(navigator.serial) && (window.isSecureContext !== false);
+  }catch(e){ return false; }
+}
+function serVisible(){
+  var v = document.getElementById('view-serial');
+  return !!(v && v.classList.contains('is-active'));
+}
+function serCfg(){
+  var d = {baud:921600, eol:'cr', bootLock:true, clock:true, filter:true, dev:null};
+  try{
+    var s = JSON.parse(localStorage.getItem(SER_STORE) || 'null');
+    if(s && typeof s === 'object'){
+      if(SER_BAUDS.indexOf(s.baud) >= 0) d.baud = s.baud;
+      if(SER_EOLS.filter(function(x){ return x.v === s.eol; }).length) d.eol = s.eol;
+      ['bootLock','clock','filter'].forEach(function(k){ if(typeof s[k] === 'boolean') d[k] = s[k]; });
+      if(s.dev && s.dev.v) d.dev = s.dev;
+    }
+  }catch(e){}
+  return d;
+}
+function serSaveCfg(patch){
+  var c = serCfg();
+  if(patch) for(var k in patch) if(patch.hasOwnProperty(k)) c[k] = patch[k];
+  try{ localStorage.setItem(SER_STORE, JSON.stringify(c)); }catch(e){}
+  return c;
+}
+/* 串口页里由 JS 写入的文案：写中文原文，tr() 负责英文，_zh 保证切回中文时不串味 */
+function serText(el, zh){
+  if(!el) return;
+  el.textContent = tr(zh);
+  if(el.firstChild) el.firstChild._zh = zh;
+}
+function serHint(msg, warn){
+  var h = $('serHint');
+  if(!h) return;
+  SER.lastHint = msg || ''; SER.lastWarn = !!warn;
+  serText(h, SER.lastHint);
+  h.classList.toggle('is-warn', !!warn);
+}
+function serBytes(n){
+  n = Number(n) || 0;
+  if(n < 1024) return Math.round(n) + ' B';
+  if(n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+  return (n / 1048576).toFixed(2) + ' MB';
+}
+function serStamp(){
+  var d = new Date(), p = function(n){ return (n < 10 ? '0' : '') + n; };
+  return '' + d.getFullYear() + p(d.getMonth() + 1) + p(d.getDate()) + '-' +
+         p(d.getHours()) + p(d.getMinutes()) + p(d.getSeconds());
+}
+
+/* ---------- 终端组件（按需加载，不拖慢其它页面） ---------- */
+function serLoadLibs(){
+  if(SER.libs) return Promise.resolve();
+  if(SER.libLoading) return SER.libLoading;
+  SER.libLoading = new Promise(function(resolve, reject){
+    var s = document.createElement('script');
+    s.src = 'vendor/xterm/xterm.js'; s.async = true;
+    s.onload = function(){
+      var f = document.createElement('script');
+      f.src = 'vendor/xterm/addon-fit.js'; f.async = true;
+      f.onload = function(){ SER.libs = true; resolve(); };
+      f.onerror = function(){ reject(new Error('addon-fit')); };
+      document.head.appendChild(f);
+    };
+    s.onerror = function(){ reject(new Error('xterm')); };
+    document.head.appendChild(s);
+  });
+  return SER.libLoading;
+}
+function serMakeTerm(){
+  if(SER.term || !window.Terminal) return;
+  var box = $('serTerm');
+  if(!box) return;
+  var term = new window.Terminal({
+    cursorBlink:true,
+    cursorStyle:'bar',
+    fontFamily:'"Cascadia Mono","JetBrains Mono",Consolas,"DejaVu Sans Mono","Noto Sans Mono CJK SC","Microsoft YaHei",monospace',
+    fontSize:13.5,
+    lineHeight:1.28,
+    scrollback:4000,
+    theme:{
+      background:'#0a0a0b', foreground:'#e8e8ea', cursor:'#0a84ff', cursorAccent:'#0a0a0b',
+      selectionBackground:'rgba(10,132,255,.35)',
+      black:'#1c1c1e', red:'#ff453a', green:'#32d74b', yellow:'#ffd60a',
+      blue:'#0a84ff', magenta:'#bf5af2', cyan:'#64d2ff', white:'#d1d1d6',
+      brightBlack:'#636366', brightRed:'#ff6961', brightGreen:'#5ffd78', brightYellow:'#ffec6e',
+      brightBlue:'#64a8ff', brightMagenta:'#da8fff', brightCyan:'#70d7ff', brightWhite:'#ffffff'
+    }
+  });
+  var fit = new window.FitAddon.FitAddon();
+  term.loadAddon(fit);
+  term.open(box);
+  term.onData(function(d){ serSendKeys(d); });
+  term.onBinary(function(d){ serSendKeys(d, true); });
+  SER.term = term; SER.fit = fit;
+  term.write('\x1b[38;5;244m' + tr('── FPGA 终端 ──') + '\x1b[0m\r\n');
+  window.addEventListener('resize', serFit);
+  if(window.ResizeObserver){
+    try{ SER.ro = new ResizeObserver(serFit); SER.ro.observe(box); }catch(e){}
+  }
+}
+function serFit(){
+  if(!SER.fit || !SER.term || !serVisible()) return;
+  if(SER.fitRq) return;
+  SER.fitRq = requestAnimationFrame(function(){
+    SER.fitRq = 0;
+    try{ SER.fit.fit(); }catch(e){}
+  });
+}
+
+/* ---------- 界面 ---------- */
+function serCloseDD(){
+  [['serBaudBtn','serBaudMenu'], ['serEolBtn','serEolMenu']].forEach(function(p){
+    var b = $(p[0]), m = $(p[1]);
+    if(m) m.classList.remove('is-open');
+    if(b) b.setAttribute('aria-expanded', 'false');
+  });
+}
+function serSyncBaud(){
+  var cfg = serCfg(), m = $('serBaudMenu');
+  if(m) Array.prototype.forEach.call(m.querySelectorAll('.dd-opt'), function(o){
+    o.classList.toggle('is-on', Number(o.dataset.v) === cfg.baud);
+  });
+  var lab = $('serBaudLabel');
+  if(lab) lab.textContent = String(cfg.baud);
+}
+function serSyncEol(){
+  var cfg = serCfg(), m = $('serEolMenu');
+  if(m) Array.prototype.forEach.call(m.querySelectorAll('.dd-opt'), function(o){
+    o.classList.toggle('is-on', o.dataset.v === cfg.eol);
+  });
+  var cur = SER_EOLS.filter(function(x){ return x.v === cfg.eol; })[0] || SER_EOLS[0];
+  var lab = $('serEolLabel');
+  if(lab) lab.textContent = cur.label;
+}
+function serSyncUI(){
+  if(!SER.uiReady) return;
+  var cfg = serCfg();
+  if($('serBootLock')) $('serBootLock').checked = !!cfg.bootLock;
+  if($('serClock')) $('serClock').checked = !!cfg.clock;
+  if($('serFilter')) $('serFilter').checked = !!cfg.filter;
+  serSyncBaud(); serSyncEol();
+}
+function serUI(on){
+  if(!SER.uiReady) return;
+  $('serConnect').classList.toggle('hidden', on);
+  $('serDisconnect').classList.toggle('hidden', !on);
+  $('serSendText').disabled = !on;
+  $('serSendBtn').disabled = !on;
+  $('serBaudBtn').disabled = !!on;
+  $('serPick').disabled = !!on;
+  $('serDot').classList.toggle('is-on', on);
+  if(!on){
+    serText($('serStat'), '未连接');
+    serText($('serDevice'), '选择设备');
+  }
+}
+function serEnsureUI(){
+  if(SER.uiReady) return;
+  SER.uiReady = true;
+
+  var bMenu = $('serBaudMenu');
+  SER_BAUDS.forEach(function(b){
+    var o = el('button', 'dd-opt', String(b));
+    o.type = 'button'; o.setAttribute('role', 'menuitem'); o.dataset.v = String(b);
+    o.addEventListener('click', function(e){
+      e.stopPropagation(); serCloseDD();
+      serSaveCfg({baud:b}); serSyncBaud();
+      if(SER.connected) serHint('下次连接时生效。');
+    });
+    bMenu.appendChild(o);
+  });
+  var eMenu = $('serEolMenu');
+  SER_EOLS.forEach(function(x){
+    var o = el('button', 'dd-opt', x.label);
+    o.type = 'button'; o.setAttribute('role', 'menuitem'); o.dataset.v = x.v;
+    o.addEventListener('click', function(e){
+      e.stopPropagation(); serCloseDD();
+      serSaveCfg({eol:x.v}); serSyncEol();
+    });
+    eMenu.appendChild(o);
+  });
+  function toggleDD(btn, menu, e){
+    e.stopPropagation();
+    var open = !menu.classList.contains('is-open');
+    serCloseDD();
+    if(open){ menu.classList.add('is-open'); btn.setAttribute('aria-expanded', 'true'); }
+  }
+  $('serBaudBtn').addEventListener('click', function(e){ toggleDD($('serBaudBtn'), bMenu, e); });
+  $('serEolBtn').addEventListener('click', function(e){ toggleDD($('serEolBtn'), eMenu, e); });
+  document.addEventListener('click', serCloseDD);
+
+  $('serPick').addEventListener('click', function(){ serConnect(true); });
+  $('serConnect').addEventListener('click', function(){ serConnect(false); });
+  $('serDisconnect').addEventListener('click', function(){ serDisconnect(false); });
+  $('serSendBtn').addEventListener('click', serSendText);
+  $('serSendText').addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ e.preventDefault(); serSendText(); }
+  });
+  $('serBootLock').addEventListener('change', function(){
+    serSaveCfg({bootLock:this.checked});
+    if(!this.checked) SER.keysOn = true;
+  });
+  $('serClock').addEventListener('change', function(){
+    serSaveCfg({clock:this.checked});
+    SER.clockArmed = this.checked && SER.promptOk && !SER.clockDone;
+  });
+  $('serFilter').addEventListener('change', function(){ serSaveCfg({filter:this.checked}); });
+  $('serSize').addEventListener('click', serSendSize);
+  $('serCopy').addEventListener('click', serCopy);
+  $('serSave').addEventListener('click', serSaveLog);
+  $('serClear').addEventListener('click', serClear);
+
+  serSyncUI();
+}
+
+/* ---------- 页面进出 ---------- */
+function serEnter(){
+  if(!serSupported()){
+    var txt = $('serLockText');
+    var raw = (window.isSecureContext === false)
+      ? 'Web Serial 需要 HTTPS 或 localhost 页面。'
+      : '请用 Chrome / Edge 打开。';
+    serText(txt, raw);
+    $('serLock').classList.remove('hidden');
+    $('serBody').classList.add('hidden');
+    return;
+  }
+  serEnsureUI();
+  $('serLock').classList.add('hidden');
+  $('serBody').classList.remove('hidden');
+  serLoadLibs().then(function(){
+    serMakeTerm();
+    serFit();
+    if(!SER.connected) serHint('串口未连接。');
+  }).catch(function(){
+    serHint('终端组件加载失败。', true);
+  });
+}
+function serLeave(){
+  if(SER.connected || SER.port) serDisconnect(true);
+}
+
+/* ---------- 连接 / 断开 ---------- */
+function serDevLabel(port){
+  var info = null;
+  try{ info = port && port.getInfo(); }catch(e){}
+  if(info && info.usbVendorId){
+    var hex = function(n){ return ('000' + (Number(n) || 0).toString(16)).slice(-4); };
+    return 'USB ' + hex(info.usbVendorId) + ':' + hex(info.usbProductId);
+  }
+  return '串口设备';
+}
+function serPickPreferred(list){
+  if(!list || !list.length) return null;
+  var cfg = serCfg(), i, info;
+  if(cfg.dev){
+    for(i = 0; i < list.length; i++){
+      try{ info = list[i].getInfo(); }catch(e){ info = null; }
+      if(info && info.usbVendorId === cfg.dev.v && (info.usbProductId || 0) === (cfg.dev.p || 0)) return list[i];
+    }
+  }
+  for(i = 0; i < list.length; i++){       /* CH340（VID_1A86 / PID_7523）优先 */
+    try{ info = list[i].getInfo(); }catch(e){ info = null; }
+    if(info && info.usbVendorId === 0x1a86 && info.usbProductId === 0x7523) return list[i];
+  }
+  return list.length === 1 ? list[0] : null;
+}
+function serFail(e){
+  var m = ((e && e.name) || '') + ': ' + ((e && e.message) || '未知错误');
+  if(/NotFoundError|No port selected/i.test(m)){
+    serHint('已取消选择。');
+  }else if(/Failed to open|NetworkError/i.test(m)){
+    serHint('无法打开串口：可能被 PuTTY 等程序占用。', true);
+  }else if(/InvalidStateError|already open/i.test(m)){
+    serHint('串口已打开，请先断开。', true);
+  }else{
+    serHint('打开串口失败：' + m, true);
+  }
+}
+async function serConnect(forcePick){
+  if(SER.connected){ serHint('已经连上了，换设备请先断开。', true); return; }
+  if(!serSupported()){ serEnter(); return; }
+  var cfg = serCfg();
+  var btn = $('serConnect');
+  if(btn) btn.setAttribute('disabled', '');
+  serHint(forcePick ? '在弹出的列表里选择串口设备…' : '正在打开串口…');
+
+  var port = null;
+  try{
+    if(!forcePick){
+      var list = await navigator.serial.getPorts();
+      port = serPickPreferred(list);
+    }
+    if(!port) port = await navigator.serial.requestPort();   /* 授权过的端口才会出现在这里 */
+    await port.open({baudRate:cfg.baud, dataBits:8, stopBits:1, parity:'none', flowControl:'none', bufferSize:65536});
+    /* 和 serial-monitor.ps1 一致：不拉 DTR / RTS（有的板子一拉就复位，开机日志就没了） */
+    try{ await port.setSignals({dataTerminalReady:false, requestToSend:false}); }catch(e){}
+  }catch(e){
+    if(btn) btn.removeAttribute('disabled');
+    serFail(e);
+    return;
+  }
+
+  var info = null;
+  try{ info = port.getInfo(); }catch(e){}
+  if(info && info.usbVendorId) serSaveCfg({dev:{v:info.usbVendorId, p:info.usbProductId || 0}});
+
+  SER.port = port; SER.connected = true; SER.closing = false;
+  SER.rx = 0; SER.tx = 0; SER.t0 = Date.now();
+  SER.lastRx = Date.now(); SER.lastKey = 0;
+  SER.carry = ''; SER.dec = new TextDecoder('utf-8'); SER.tail = '';
+  SER.keysOn = !cfg.bootLock; SER.promptOk = false;
+  SER.clockArmed = !!cfg.clock; SER.clockDone = false;
+  try{ port.addEventListener('disconnect', serOnDisconnect); }catch(e){}
+  try{ SER.writer = port.writable.getWriter(); }catch(e){ SER.writer = null; }
+
+  if(btn) btn.removeAttribute('disabled');
+  serText($('serDevice'), serDevLabel(port));
+  serUI(true);
+  serTick(true);
+  serHint('已连接 ' + cfg.baud + ' 8N1。' + (cfg.bootLock ? '开机阶段按键锁定，见到提示符后解锁。' : ''));
+  if(SER.term) SER.term.focus();
+  serReadLoop(port);
+}
+function serOnDisconnect(){
+  if(!SER.connected) return;
+  serDisconnect(true);
+  serHint('USB 串口已断开。', true);
+}
+async function serDisconnect(quiet){
+  if(!SER.port && !SER.connected){ serUI(false); return; }
+  SER.closing = true;
+  var port = SER.port;
+  try{ if(SER.reader) await SER.reader.cancel(); }catch(e){}
+  await new Promise(function(r){ setTimeout(r, 60); });
+  try{ if(SER.writer){ await SER.writer.close(); } }catch(e){
+    try{ if(SER.writer) SER.writer.releaseLock(); }catch(e2){}
+  }
+  SER.reader = null; SER.writer = null;
+  try{ if(port){ port.removeEventListener('disconnect', serOnDisconnect); await port.close(); } }catch(e){}
+  SER.port = null; SER.connected = false;
+  serTick(false);
+  serUI(false);
+  if(!quiet) serHint('已断开串口。');
+}
+
+/* ---------- 收发 ---------- */
+async function serReadLoop(port){
+  while(port.readable && !SER.closing){
+    var reader;
+    try{ reader = port.readable.getReader(); }catch(e){ break; }
+    SER.reader = reader;
+    try{
+      while(!SER.closing){
+        var res = await reader.read();
+        if(res.done) break;
+        if(res.value && res.value.length) serOnBytes(res.value);
+      }
+    }catch(e){
+      if(!SER.closing) serHint('读取中断：' + ((e && e.message) || e), true);
+    }finally{
+      try{ reader.releaseLock(); }catch(e){}
+      if(SER.reader === reader) SER.reader = null;
+    }
+    if(SER.closing) break;
+    if(!port.readable) break;
+    await new Promise(function(r){ setTimeout(r, 200); });
+  }
+}
+function serOnBytes(u8){
+  SER.rx += u8.length;
+  SER.lastRx = Date.now();
+  SER.chunks.push(u8.slice());
+  SER.chunkBytes += u8.length;
+  while(SER.chunkBytes > SER_CHUNK_CAP && SER.chunks.length > 1){
+    SER.chunkBytes -= SER.chunks.shift().length;
+  }
+  var s = '';
+  if(SER.dec) s = SER.dec.decode(u8, {stream:true});
+  if(!s) return;
+  s = serFilterIn(s, serCfg().filter);
+  if(!s) return;
+  if(SER.term) SER.term.write(s);
+  serTrack(s);
+}
+/* 收方向过滤：丢掉终端应答，并扣住可能被截断的转义序列尾巴（下一批再拼起来判断） */
+function serFilterIn(s, dropReplies){
+  var buf = SER.carry + s;
+  if(dropReplies) buf = buf.replace(SER_REPLY_RE, '');
+  var m = /(?:\x1b|\^\[)(?:\[[0-9;?<=>]{0,10})?$/.exec(buf);
+  if(m){ SER.carry = m[0]; buf = buf.slice(0, m.index); }
+  else SER.carry = '';
+  return buf;
+}
+/* 发方向过滤：xterm 会自动回答 ESC[18t / ESC[6n，这些应答不能写进串口 */
+function serFilterOut(s, dropReplies){
+  if(!s) return '';
+  return dropReplies ? s.replace(SER_REPLY_RE, '') : s;
+}
+function serTrack(s){
+  SER.tail = (SER.tail + s).slice(-600);
+  var plain = SER.tail.replace(SER_ANSI_RE, '');
+  if(/(login:|Password:)\s*$/.test(plain)){
+    SER.promptOk = false;
+    SER.keysOn = true;
+    SER.clockArmed = serCfg().clock;
+    SER.clockDone = false;
+  }else{
+    var nl = plain.lastIndexOf('\n');
+    var last = nl >= 0 ? plain.slice(nl + 1) : plain;
+    if(last.length <= 120 && /[#$]\s*$/.test(last)){
+      SER.promptOk = true;
+      SER.keysOn = true;
+    }
+  }
+}
+function serWriteBytes(arr){
+  if(!SER.writer || !arr || !arr.length) return;
+  SER.writer.write(arr).then(function(){
+    SER.tx += arr.length;
+  }).catch(function(e){
+    serHint('发送失败：' + ((e && e.message) || e), true);
+  });
+}
+function serWrite(str){
+  if(!str) return;
+  serWriteBytes(new TextEncoder().encode(str));
+}
+function serSendKeys(d, binary){
+  if(!SER.connected || !d) return;
+  var cfg = serCfg();
+  SER.lastKey = Date.now();
+  if(cfg.bootLock && !SER.keysOn){
+    serHint('开机阶段按键已锁定。', true);
+    return;
+  }
+  if(binary){
+    var arr = new Uint8Array(d.length);
+    for(var i = 0; i < d.length; i++) arr[i] = d.charCodeAt(i) & 0xff;
+    serWriteBytes(arr);
+    return;
+  }
+  serWrite(serFilterOut(d, cfg.filter));
+}
+function serSendText(){
+  if(!SER.connected){ serHint('串口未连接。', true); return; }
+  var inp = $('serSendText');
+  if(!inp) return;
+  var cfg = serCfg();
+  var eol = (SER_EOLS.filter(function(x){ return x.v === cfg.eol; })[0] || SER_EOLS[0]).s;
+  SER.keysOn = true;               /* 主动发送 = 明确要输入 */
+  serWrite(inp.value + eol);
+  inp.value = '';
+  if(SER.term) SER.term.focus();
+}
+function serAutoClock(){
+  var d = new Date(), p = function(n){ return (n < 10 ? '0' : '') + n; };
+  var s = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' +
+          p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+  SER.clockDone = true; SER.clockArmed = false;
+  /* 板上没有 RTC 也没有网络：和 serial-monitor.ps1 用同一条命令（sudoers 已配 NOPASSWD） */
+  serWrite("sudo -n date -s '" + s + "' >/dev/null 2>&1; sudo -n /usr/local/sbin/fake-hwclock save >/dev/null 2>&1\r");
+  serHint('板子时间已同步为 ' + s + '。');
+}
+function serTick(on){
+  if(SER.tick){ clearInterval(SER.tick); SER.tick = null; }
+  if(!on) return;
+  SER.lastTickRx = SER.rx; SER.lastTickAt = Date.now();
+  SER.tick = setInterval(function(){
+    var now = Date.now();
+    var dt = Math.max(0.25, (now - SER.lastTickAt) / 1000);
+    var rate = (SER.rx - SER.lastTickRx) / dt;
+    SER.lastTickRx = SER.rx; SER.lastTickAt = now;
+    var st = $('serStat');
+    if(st) serText(st, '已收 ' + serBytes(SER.rx) + ' · ' + serBytes(rate) + '/s · 发 ' + serBytes(SER.tx));
+
+    var cfg = serCfg();
+    if(cfg.bootLock && !SER.keysOn && now - SER.lastRx > 10000){
+      SER.keysOn = true;
+      serHint('按键输入已解锁。');
+    }
+    if(cfg.clock && SER.clockArmed && !SER.clockDone && SER.promptOk &&
+       now - SER.lastKey > 1500 && now - SER.lastRx > 800){
+      serAutoClock();
+    }
+  }, 500);
+}
+
+/* ---------- 工具按钮 ---------- */
+function serClear(){
+  if(SER.term){ try{ SER.term.reset(); }catch(e){} }
+  SER.chunks = []; SER.chunkBytes = 0; SER.tail = ''; SER.carry = '';
+  serHint('已清空。');
+}
+function serSaveLog(){
+  if(!SER.chunkBytes){ serHint('还没有收到数据。', true); return; }
+  var blob = new Blob(SER.chunks, {type:'application/octet-stream'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'serial-' + serStamp() + '.log';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); if(a.parentNode) a.parentNode.removeChild(a); }, 1200);
+  serHint('已保存 ' + serBytes(SER.chunkBytes) + ' 日志。');
+}
+function serCopy(){
+  var sel = '';
+  try{ sel = SER.term ? SER.term.getSelection() : ''; }catch(e){}
+  if(!sel){ serHint('先拖选要复制的内容。', true); return; }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(sel).then(function(){ toast('已复制'); }, function(){
+      serHint('复制失败。', true);
+    });
+  }else{
+    var ta = document.createElement('textarea');
+    ta.value = sel;
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try{ ok = document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+    serHint(ok ? '已复制。' : '复制失败。', !ok);
+  }
+}
+function serSendSize(){
+  if(!SER.connected){ serHint('串口未连接。', true); return; }
+  if(!SER.term) return;
+  serWrite('\x1b[8;' + SER.term.rows + ';' + SER.term.cols + 't');
+  serHint('已发送窗口尺寸 ' + SER.term.cols + '×' + SER.term.rows + '。');
+}
+
 /* ---------- 移动端底部 Dock（由 NAV 数据生成） ---------- */
 var DOCK_ICONS = {
   home: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/></svg>',
   layout: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>',
-  misc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 15l5-4 4 3 3-2 6 4"/></svg>'
+  misc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 15l5-4 4 3 3-2 6 4"/></svg>',
+  serial: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9l3 3-3 3"/><path d="M13 15h4"/></svg>'
 };
 function buildDock(){
   var inner = $('dockInner');
   if(!inner) return;
   Array.prototype.forEach.call(inner.querySelectorAll('.dock-item'), function(n){ n.remove(); });
   NAV.forEach(function(n){
+    if(n.id === 'serial' && !serSupported()) return;
     var a = el('a', 'dock-item');
     a.href = n.href;
     a.dataset.nav = n.id;
@@ -3450,7 +4194,8 @@ function syncDock(){
   var inner = $('dockInner');
   if(!inner) return;
   var h = (location.hash || '#/').replace(/^#/, '');
-  var name = h.indexOf('/layout') === 0 ? 'layout' : (h.indexOf('/misc') === 0 ? 'misc' : 'home');
+  var name = h.indexOf('/layout') === 0 ? 'layout' : (h.indexOf('/misc') === 0 ? 'misc' :
+             (h.indexOf('/serial') === 0 ? 'serial' : 'home'));
   var on = null;
   Array.prototype.forEach.call(inner.querySelectorAll('.dock-item'), function(o){
     var isOn = o.dataset.nav === name;

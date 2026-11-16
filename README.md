@@ -29,6 +29,7 @@
 | 🏠 **首页** | 整屏实景背景 + 「HIEQ的小站」标题与跳转按钮 + Live2D 桌宠 |
 | 🔬 **Layout** | **DieShot**：221 张Dieshot，27 家厂商，支持搜索与标签筛选 |
 | 🖼️ **杂图** | 零散图片墙（滚动墙 / 全部列表两种浏览方式） |
+| 🖥️ **FPGA 终端** | 板子的串口终端（`#/serial`）：ANSI 真彩，直连 USB-TTL |
 
 ---
 
@@ -58,6 +59,17 @@
 - 改动通过 **Contents API 直接提交仓库**，访客刷新即见（Cloudflare 部署下 Token 存在服务端，浏览器不接触）
 - 也可离线保存到本机草稿，随时「同步到 GitHub」补交
 - 换主页背景、改口令、补齐缩略图、导出 gallery.json
+
+### 🖥️ FPGA 终端（`#/serial`）
+- **Web Serial 直连**：浏览器连本机 USB-TTL（CH340 等），无后端
+- **真彩终端**：本地打包 **xterm.js 5.5.0**（`vendor/xterm/`，MIT），
+  ANSI / 256 色 / truecolor，跑 `btop` 不掉色
+- 默认 **921600 8N1**，DTR / RTS 关闭
+- **开机期间锁定按键**：见到 `login:` / 提示符解锁，闲置 10 秒也解锁
+- **过滤终端应答**：两个方向都丢弃 `ESC[8;行;列t` / `ESC[行列R`，login 不会回显 `^[[8;51;179t`
+- **登录后自动对时**（`date -s` ＋ `fake-hwclock save`）
+- 行尾可选 **CR / LF / CRLF / 无**；发送当前窗口尺寸；下载原始日志
+- 离开页面自动断开串口；没有 Web Serial 的浏览器不显示入口
 
 ### 🌗 其它
 - 夜间 / 日间双主题（跟随系统，可手动切换）
@@ -89,6 +101,7 @@
 | --- | --- |
 | 页面 | 原生 HTML / CSS / JS |
 | Live2D | Cubism 4 Core ＋ PixiJS ＋ pixi-live2d-display |
+| 串口 | Web Serial API ＋ xterm.js（`vendor/xterm/`） |
 | 字体 | Qualcomm Next（打包在 `fonts/`，Regular / Medium） |
 | 部署 | Cloudflare Pages + Pages Functions（后端鉴权，`hieq-home404.pages.dev`） |
 | 内容 | GitHub Contents API（管理后台直接写 `gallery.json` 与图片） |
@@ -105,6 +118,7 @@ CATALOG.md              按厂商分组的目录清单（自动生成，页脚�
 1.jpg                   站点图标（favicon / apple-touch-icon）
 fonts/                  Qualcomm Next 字体（Regular / Medium）
 live2d/                 Live2D 运行库与模型（lib/ ＋ model/）
+vendor/xterm/           xterm.js 5.5.0 ＋ fit 插件（FPGA 终端用，MIT）
 images/dieshot/         Die Shot 图库（4096px JPEG ＋ 720px 缩略图，按厂商分子目录）
 images/misc/            杂图
 tools/                  工具脚本：import-dieshot.js / build-catalog.js / verify-ratio.js
