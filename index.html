@@ -1206,6 +1206,7 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
             <div class="serial-group serial-acts">
               <button class="btn ghost sm" id="serFontDown" title="缩小字号（列数变多）">A−</button>
               <button class="btn ghost sm" id="serFontUp" title="放大字号（列数变少）">A+</button>
+              <button class="btn ghost sm" id="serFitScreen" title="按当前窗口重新适配并重新测量">适配屏幕</button>
               <button class="btn ghost sm" id="serFull">全屏</button>
               <button class="btn ghost sm" id="serCopy">复制选中</button>
               <button class="btn ghost sm" id="serSave">下载日志</button>
@@ -1598,7 +1599,7 @@ var EN = {
   '开机期间锁定按键':'Lock keys during boot', '登录后同步本机时间':'Sync host clock after login',
   '过滤终端应答':'Filter terminal replies',
   '发送窗口尺寸':'Send window size', '复制选中':'Copy selection', '下载日志':'Download log', '清空':'Clear',
-  '全屏':'Full screen', '退出全屏':'Exit full screen', '字号':'Font size',  '此页面仅在本机可用':'This page only works on this computer',
+  '全屏':'Full screen', '退出全屏':'Exit full screen', '字号':'Font size', '适配屏幕':'Fit screen', '已按当前窗口适配':'Fitted to the window',  '此页面仅在本机可用':'This page only works on this computer',
   '插好 USB 串口后点「连接」。':'Plug in the USB serial adapter, then click Connect.',
   '── FPGA 终端 ──':'── FPGA terminal ──',
   'Web Serial 需要 HTTPS 或 localhost 页面。':'Web Serial needs an HTTPS or localhost page.',
@@ -3963,6 +3964,7 @@ function serEnsureUI(){
   $('serFilter').addEventListener('change', function(){ serSaveCfg({filter:this.checked}); });
   $('serFontDown').addEventListener('click', function(){ serFontStep(-0.4); });
   $('serFontUp').addEventListener('click', function(){ serFontStep(0.4); });
+  $('serFitScreen').addEventListener('click', serFitScreen);
   $('serFull').addEventListener('click', function(){ serToggleFocus(); });
   document.addEventListener('keydown', function(e){
     var p = document.querySelector('.serial-panel');
@@ -4329,6 +4331,17 @@ function serCopy(){
     document.body.removeChild(ta);
     serHint(ok ? '已复制。' : '复制失败。', !ok);
   }
+}
+/* 按当前窗口重新适配：丢掉旧的宽高缓存，重新量面板再 fit（不改字号） */
+function serFitScreen(){
+  SER.lastW = 0; SER.lastH = 0;
+  serLayout();
+  serFit();
+  setTimeout(serFit, 160);
+  setTimeout(function(){
+    var t = SER.term;
+    serHint(tr('已按当前窗口适配') + (t ? ('：' + t.cols + '×' + t.rows) : ''));
+  }, 220);
 }
 /* 字号手动微调：字小了列数变多，板子画得再宽也能完整显示 */
 function serFontStep(d){
