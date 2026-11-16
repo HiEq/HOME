@@ -7,8 +7,8 @@
     "avatar": "https://github.com/HiEq.png?size=64",
     "bg": "images/home-bg.jpg",
     "bgFocus": {
-      "x": 49,
-      "y": 45
+      "x": 51,
+      "y": 51
     }
   },
   "config": {
