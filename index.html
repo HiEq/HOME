@@ -3846,12 +3846,19 @@ function serApplyFit(){
   return true;
 }
 /* 让板子的 tty 尺寸跟网页一致 */
+/* 板子的程序和网页之间总差 1 列（tmux 按其内部宽度排版），少报 2 列当安全边距，
+   宁可右边空两列也不裁字 */
+var SER_COL_MARGIN = 2;
+function serOutCols(){
+  var c = SER.term ? SER.term.cols : 80;
+  return Math.max(20, c - SER_COL_MARGIN);
+}
 function serSyncTty(quiet){
   if(!SER.connected || !SER.term || !SER.promptOk || SER.alt) return false;
   var now = Date.now();
   if(quiet && now - SER.lastTtyAt < 700) return false;
   SER.lastTtyAt = now;
-  var c = SER.term.cols, r = SER.term.rows;
+  var c = serOutCols(), r = SER.term.rows;
   SER.ttySize = c + 'x' + r;
   serWrite('stty rows ' + r + ' cols ' + c + '\r');
   serHint(quiet ? ('已同步 tty 尺寸 ' + c + '×' + r + '。') : ('已执行 stty rows ' + r + ' cols ' + c + '。'));
@@ -4288,7 +4295,7 @@ function serTick(on){
       serAutoClock();
     }
     /* 停在提示符时，只要当前尺寸和 tty 记录不一致就补一次（btop 读的是 tty） */
-    if(SER.promptOk && !SER.alt && SER.term && SER.ttySize !== (SER.term.cols + 'x' + SER.term.rows) &&
+    if(SER.promptOk && !SER.alt && SER.term && SER.ttySize !== (serOutCols() + 'x' + SER.term.rows) &&
        now - SER.lastKey > 500 && now - SER.lastRx > 350){
       serSyncTty(false);
     }
@@ -4337,9 +4344,10 @@ function serPushSize(quiet, force){
   var now = Date.now();
   if(quiet && !force && now - SER.lastSizeAt < 400) return;   /* 拖动窗口时别刷屏 */
   SER.lastSizeAt = now;
-  SER.lastSize = SER.term.cols + 'x' + SER.term.rows;
-  serWrite('\x1b[8;' + SER.term.rows + ';' + SER.term.cols + 't');
-  if(!quiet) serHint('已发送窗口尺寸 ' + SER.term.cols + '×' + SER.term.rows + '。');
+  var c = serOutCols(), r = SER.term.rows;
+  SER.lastSize = c + 'x' + r;
+  serWrite('\x1b[8;' + r + ';' + c + 't');
+  if(!quiet) serHint('已发送窗口尺寸 ' + c + '×' + r + '。');
 }
 function serSendSize(){
   if(!SER.connected){ serHint('串口未连接。', true); return; }
