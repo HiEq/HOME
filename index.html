@@ -940,8 +940,8 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
 .serial-dot{width:8px;height:8px;border-radius:50%;background:var(--fg3);box-shadow:0 0 0 3px rgba(128,128,128,.14);flex:none}
 .serial-dot.is-on{background:#30d158;box-shadow:0 0 0 3px rgba(48,209,88,.18)}
 .serial-term{
-  height:min(58vh,600px);margin:0 12px;padding:11px 8px;
-  border-radius:14px;background:#0a0a0b;overflow:hidden;
+  height:min(58vh,600px);margin:0 12px;padding:14px 10px;
+  border-radius:12px;background:#0a0a0b;overflow:hidden;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);
 }
 /* 内层不带 padding：fit 量的是 .xterm 的父元素，外层 padding 会被算成可用列宽，
@@ -3653,7 +3653,7 @@ var SER_ANSI_RE = /(?:\x1b\[[0-9;<=>?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1
 var SER = {
   term:null, fit:null, libs:false, libLoading:null, uiReady:false,
   port:null, reader:null, writer:null, connected:false, closing:false,
-  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'', alt:false, sizeSynced:false, lastTtyAt:0, needTty:false,
+  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'', alt:false, lastTtyAt:0, ttySize:'',
   lastTickRx:0, lastTickAt:0, tick:null,
   carry:'', dec:null, chunks:[], chunkBytes:0, tail:'',
   keysOn:false, promptOk:false, clockArmed:false, clockDone:false,
@@ -3839,11 +3839,8 @@ function serApplyFit(){
       t.resize(cols, rows);
     }catch(e){}
     /* shell 里直接改 tty（btop/fastfetch 读这个）；全屏程序里才回 CSI 尺寸应答，
-       否则先记下来，等回到提示符再补一次 */
-    if(!serSyncTty(true)){
-      SER.needTty = true;
-      if(SER.alt) serPushSize(true);
-    }
+       不在提示符就先记着，回到提示符再补 */
+    if(!serSyncTty(true) && SER.alt) serPushSize(true);
   }
   serDims();
   return true;
@@ -3853,8 +3850,9 @@ function serSyncTty(quiet){
   if(!SER.connected || !SER.term || !SER.promptOk || SER.alt) return false;
   var now = Date.now();
   if(quiet && now - SER.lastTtyAt < 700) return false;
-  SER.lastTtyAt = now; SER.sizeSynced = true; SER.needTty = false;
+  SER.lastTtyAt = now;
   var c = SER.term.cols, r = SER.term.rows;
+  SER.ttySize = c + 'x' + r;
   serWrite('stty rows ' + r + ' cols ' + c + '\r');
   serHint(quiet ? ('已同步 tty 尺寸 ' + c + '×' + r + '。') : ('已执行 stty rows ' + r + ' cols ' + c + '。'));
   return true;
@@ -4094,7 +4092,7 @@ async function serConnect(forcePick){
   SER.carry = ''; SER.dec = new TextDecoder('utf-8'); SER.tail = '';
   SER.keysOn = !cfg.bootLock; SER.promptOk = false;
   SER.clockArmed = !!cfg.clock; SER.clockDone = false;
-  SER.alt = false; SER.sizeSynced = false;
+  SER.alt = false; SER.ttySize = '';
   try{ port.addEventListener('disconnect', serOnDisconnect); }catch(e){}
   try{ SER.writer = port.writable.getWriter(); }catch(e){ SER.writer = null; }
 
@@ -4286,11 +4284,9 @@ function serTick(on){
        now - SER.lastKey > 1500 && now - SER.lastRx > 800){
       serAutoClock();
     }
-    /* 停在 shell 时把 tty 尺寸对齐一次：btop / fastfetch 读的是 tty，不是网页 */
-    if(SER.promptOk && !SER.alt && (SER.needTty || !SER.sizeSynced) && SER.term &&
-       (SER.needTty
-         ? (now - SER.lastKey > 200 && now - SER.lastRx > 150)
-         : (now - SER.lastKey > 700 && now - SER.lastRx > 500))){
+    /* 停在提示符时，只要当前尺寸和 tty 记录不一致就补一次（btop 读的是 tty） */
+    if(SER.promptOk && !SER.alt && SER.term && SER.ttySize !== (SER.term.cols + 'x' + SER.term.rows) &&
+       now - SER.lastKey > 500 && now - SER.lastRx > 350){
       serSyncTty(false);
     }
   }, 500);
