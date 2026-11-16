@@ -3651,7 +3651,7 @@ var SER_ANSI_RE = /(?:\x1b\[[0-9;<=>?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1
 var SER = {
   term:null, fit:null, libs:false, libLoading:null, uiReady:false,
   port:null, reader:null, writer:null, connected:false, closing:false,
-  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'', alt:false, qcarry:'',
+  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'', alt:false, qcarry:'', ttySize:'',
   lastTickRx:0, lastTickAt:0, tick:null,
   carry:'', dec:null, chunks:[], chunkBytes:0, tail:'',
   keysOn:false, promptOk:false, clockArmed:false, clockDone:false,
@@ -3830,7 +3830,13 @@ function serApplyFit(){
     return false;
   }
   var cols = Math.max(2, Math.floor(vp.clientWidth / cell.width));
+  /* xterm 的 DOM 渲染会额外加 letter-spacing（DPR 非整数时），字符实际步进是
+     cell.width + spacing；只按 cell.width 算列数会多出 2~4 列，右边被视口裁掉 */
+  var rowsEl = document.querySelector('#serTerm .xterm-rows');
+  var gap = rowsEl ? (parseFloat(getComputedStyle(rowsEl).letterSpacing) || 0) : 0;
+  if(gap > 0) cols = Math.max(2, Math.floor(vp.clientWidth / (cell.width + gap)));
   var rows = Math.max(1, Math.floor(vp.clientHeight / cell.height));
+  if(cols !== t.cols || rows !== t.rows) SER.ttySize = '';
   if(cols !== t.cols || rows !== t.rows){
     try{
       if(core._renderService) core._renderService.clear();
@@ -4277,7 +4283,16 @@ function serTick(on){
        now - SER.lastKey > 1500 && now - SER.lastRx > 800){
       serAutoClock();
     }
-    /* 停在提示符时不做任何尺寸/字号适配 */
+    /* 停在提示符时，把网页的真实列数写到串口 tty（tmux/byobu 只认这个），
+       两边一致，右边才不会缺一截 */
+    if(SER.promptOk && !SER.alt && SER.term &&
+       SER.ttySize !== (SER.term.cols + 'x' + SER.term.rows) &&
+       now - SER.lastKey > 500 && now - SER.lastRx > 350){
+      var c = SER.term.cols, r = SER.term.rows;
+      SER.ttySize = c + 'x' + r;
+      serWrite('stty rows ' + r + ' cols ' + c + ' 2>/dev/null; sudo -n stty -F /dev/ttyPS0 rows ' + r + ' cols ' + c + '\r');
+      serHint('已按页面尺寸 ' + c + '×' + r + ' 同步板子。');
+    }
   }, 500);
 }
 
