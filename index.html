@@ -918,7 +918,7 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
 }
 
 /* ---------- FPGA 终端（#/serial）：本机 USB 串口 · 真彩终端 ---------- */
-.serial-top{padding:24px 12px 0}
+.serial-top{padding:24px 12px 0;max-width:none}
 .serial-panel{
   border-radius:20px;background:var(--bg-elev);
   box-shadow:inset 0 0 0 1px var(--hairline), var(--shadow-card);
@@ -943,6 +943,9 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
   border-radius:14px;background:#0a0a0b;overflow:hidden;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);
 }
+/* 内层不带 padding：fit 量的是 .xterm 的父元素，外层 padding 会被算成可用列宽，
+   导致最右一列（btop 的右边框）被挤出可视区 */
+.serial-term > div{width:100%;height:100%}
 .serial-term .xterm{height:100%}
 /* 滚动条不占位也不压字：xterm 自己处理滚轮/翻页，全屏程序另有自己的界面 */
 .serial-term .xterm-viewport{
@@ -1162,7 +1165,7 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
             <div class="serial-stat"><span class="serial-dot" id="serDot"></span><span id="serStat">未连接</span></div>
           </div>
 
-          <div class="serial-term" id="serTerm"></div>
+          <div class="serial-term"><div id="serTerm"></div></div>
 
           <div class="serial-bar">
             <div class="serial-group serial-send">
@@ -3742,7 +3745,8 @@ function serMakeTerm(){
     try{ SER.ro = new ResizeObserver(serFit); SER.ro.observe(box); }catch(e){}
   }
   /* 点在终端外圈的留白上也要能拿到焦点，否则键盘看着像“没反应” */
-  box.addEventListener('pointerdown', function(){ if(SER.term) SER.term.focus(); });
+  var shell = box.closest ? box.closest('.serial-term') : box.parentNode;
+  (shell || box).addEventListener('pointerdown', function(){ if(SER.term) SER.term.focus(); });
   serFit();
   setTimeout(serFit, 60);
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(serFit).catch(function(){});
@@ -3766,12 +3770,36 @@ function serFit(){
     if(SER.fitTimer){ clearTimeout(SER.fitTimer); SER.fitTimer = 0; }
     if(SER.fitRq){ cancelAnimationFrame(SER.fitRq); SER.fitRq = 0; }
     if(!SER.fit || !SER.term || !serVisible()) return;
-    try{ SER.fit.fit(); }catch(e){}
+    serApplyFit();
     var box = $('serTerm');
     if(box){ SER.lastW = box.clientWidth; SER.lastH = box.clientHeight; }
   };
   SER.fitRq = requestAnimationFrame(run);
   SER.fitTimer = setTimeout(run, 120);   /* 后台标签页里 rAF 不跑，定时器兜底 */
+}
+/* 直接用视口的实际内容宽度算行列，不走 FitAddon 的父元素测量：
+   FitAddon 量的是 .xterm 的父元素宽度，外壳 padding 会被当成可用列宽，
+   最右一列（btop 的右边框）就会被挤出可视区 */
+function serApplyFit(){
+  var t = SER.term;
+  if(!t) return false;
+  var vp = document.querySelector('#serTerm .xterm-viewport');
+  var core = t._core;
+  var cell = core && core._renderService && core._renderService.dimensions &&
+             core._renderService.dimensions.css && core._renderService.dimensions.css.cell;
+  if(!vp || !cell || !cell.width || !cell.height){
+    try{ SER.fit.fit(); }catch(e){}
+    return false;
+  }
+  var cols = Math.max(2, Math.floor(vp.clientWidth / cell.width));
+  var rows = Math.max(1, Math.floor(vp.clientHeight / cell.height));
+  if(cols !== t.cols || rows !== t.rows){
+    try{
+      if(core._renderService) core._renderService.clear();
+      t.resize(cols, rows);
+    }catch(e){}
+  }
+  return true;
 }
 
 /* ---------- 界面 ---------- */
