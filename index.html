@@ -936,6 +936,7 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
   margin-left:auto;display:flex;align-items:center;gap:9px;
   font-size:13px;color:var(--fg2);font-variant-numeric:tabular-nums;
 }
+.serial-dims{color:var(--fg3);font-variant-numeric:tabular-nums}
 .serial-dot{width:8px;height:8px;border-radius:50%;background:var(--fg3);box-shadow:0 0 0 3px rgba(128,128,128,.14);flex:none}
 .serial-dot.is-on{background:#30d158;box-shadow:0 0 0 3px rgba(48,209,88,.18)}
 .serial-term{
@@ -1179,7 +1180,7 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
               <button class="btn tint sm" id="serConnect">连接</button>
               <button class="btn ghost sm hidden" id="serDisconnect">断开</button>
             </div>
-            <div class="serial-stat"><span class="serial-dot" id="serDot"></span><span id="serStat">未连接</span></div>
+            <div class="serial-stat"><span class="serial-dot" id="serDot"></span><span id="serStat">未连接</span><span class="serial-dims" id="serDims"></span></div>
           </div>
 
           <div class="serial-term"><div id="serTerm"></div></div>
@@ -1680,6 +1681,8 @@ var DYN = [
   [/^已保存 (.+) 日志。$/, 'Saved $1 log.'],
   [/^板子时间已同步为 (.+)。$/, 'Board clock set to $1.'],
   [/^已发送窗口尺寸 (\d+)×(\d+)。$/, 'Sent window size $1×$2.'],
+  [/^已执行 stty rows (\d+) cols (\d+)。$/, 'Ran stty rows $1 cols $2.'],
+  [/^已同步 tty 尺寸 (\d+)×(\d+)。$/, 'tty size synced to $1×$2.'],
   [/^打开串口失败：(.+)$/, 'Cannot open the port: $1'],
   [/^读取中断：(.+)$/, 'Read interrupted: $1'],
   [/^发送失败：(.+)$/, 'Send failed: $1']
@@ -3650,7 +3653,7 @@ var SER_ANSI_RE = /(?:\x1b\[[0-9;<=>?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1
 var SER = {
   term:null, fit:null, libs:false, libLoading:null, uiReady:false,
   port:null, reader:null, writer:null, connected:false, closing:false,
-  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'',
+  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'', alt:false, sizeSynced:false,
   lastTickRx:0, lastTickAt:0, tick:null,
   carry:'', dec:null, chunks:[], chunkBytes:0, tail:'',
   keysOn:false, promptOk:false, clockArmed:false, clockDone:false,
@@ -3837,7 +3840,12 @@ function serApplyFit(){
     }catch(e){}
     serPushSize(true);          /* 变宽变窄时顺手告诉板子/tmux，全屏程序才不会错位 */
   }
+  serDims();
   return true;
+}
+function serDims(){
+  var d = $('serDims');
+  if(d && SER.term) d.textContent = SER.term.cols + '×' + SER.term.rows;
 }
 
 /* ---------- 界面 ---------- */
@@ -4070,6 +4078,7 @@ async function serConnect(forcePick){
   SER.carry = ''; SER.dec = new TextDecoder('utf-8'); SER.tail = '';
   SER.keysOn = !cfg.bootLock; SER.promptOk = false;
   SER.clockArmed = !!cfg.clock; SER.clockDone = false;
+  SER.alt = false; SER.sizeSynced = false;
   try{ port.addEventListener('disconnect', serOnDisconnect); }catch(e){}
   try{ SER.writer = port.writable.getWriter(); }catch(e){ SER.writer = null; }
 
@@ -4160,9 +4169,11 @@ function serFilterOut(s, dropReplies){
 function serTrack(s){
   /* 全屏程序（btop / vim / tmux）一出现就说明已经过了开机阶段，必须能收键 */
   if(/\x1b\[\?(?:1049|1047|47)h/.test(s)){
+    SER.alt = true;
     SER.keysOn = true;
     SER.promptOk = false;
   }
+  if(/\x1b\[\?(?:1049|1047|47)l/.test(s)) SER.alt = false;
   /* 板子重启：看到 bootloader / 内核启动的标志就重新锁上，避免打断 U-Boot */
   if(/\bU-Boot 20\d\d\.\d|Hit any key to stop autoboot|Starting kernel \.\.\.|Freeing unused kernel memory/.test(s)){
     if(serCfg().bootLock){
@@ -4257,6 +4268,15 @@ function serTick(on){
        now - SER.lastKey > 1500 && now - SER.lastRx > 800){
       serAutoClock();
     }
+    /* 停在 shell 时把 tty 尺寸对齐一次：btop / fastfetch 读的是 tty，不是网页 */
+    if(SER.promptOk && !SER.alt && !SER.sizeSynced && SER.term &&
+       (!cfg.clock || SER.clockDone || !SER.clockArmed) &&
+       now - SER.lastKey > 1200 && now - SER.lastRx > 900){
+      SER.sizeSynced = true;
+      var c = SER.term.cols, r = SER.term.rows;
+      serWrite('stty rows ' + r + ' cols ' + c + '\r');
+      serHint('已同步 tty 尺寸 ' + c + '×' + r + '。');
+    }
   }, 500);
 }
 
@@ -4309,6 +4329,15 @@ function serPushSize(quiet){
 function serSendSize(){
   if(!SER.connected){ serHint('串口未连接。', true); return; }
   if(!SER.term) return;
+  var c = SER.term.cols, r = SER.term.rows;
+  /* 停在 shell 提示符时直接改 tty 尺寸，这才是 btop/fastfetch 读到的值；
+     全屏程序里没法插命令，只能回 CSI 尺寸应答（tmux 认这个） */
+  if(!SER.alt && SER.promptOk){
+    serWrite('stty rows ' + r + ' cols ' + c + '\r');
+    SER.sizeSynced = true;
+    serHint('已执行 stty rows ' + r + ' cols ' + c + '。');
+    return;
+  }
   SER.lastSizeAt = 0;
   serPushSize(false);
 }
