@@ -7,8 +7,8 @@
     "avatar": "https://github.com/HiEq.png?size=64",
     "bg": "images/home-bg.jpg",
     "bgFocus": {
-      "x": 52,
-      "y": 49
+      "x": 49,
+      "y": 45
     }
   },
   "config": {
@@ -24,20 +24,19 @@
   "items": [
     {
       "id": "imwiq5jggch4mq",
-      "coll": "dieshot",
       "title": "Cloud AI 100",
       "desc": "TSMC 7nm",
       "tags": [
         "Qualcomm"
       ],
+      "src": "images/dieshot/qualcomm/mwiq5jgh-Cloud-AI-100-14.67x20.59x0.jpg",
+      "thumb": "images/dieshot/qualcomm/mwiq5jgh-Cloud-AI-100-14.67x20.59x0.thumb.jpg",
+      "file": "images/dieshot/qualcomm/mwiq5jgh-Cloud-AI-100-14.67x20.59x0.jpg",
       "name": "Cloud AI 100 14.67x20.59x0.jpg",
       "size": 10646216,
-      "addedAt": "2026-11-16T03:49:24.544Z",
       "w": 7214,
       "h": 5699,
-      "src": "images/dieshot/qualcomm/mwiq5jgh-Cloud-AI-100-14.67x20.59x0.jpg",
-      "file": "images/dieshot/qualcomm/mwiq5jgh-Cloud-AI-100-14.67x20.59x0.jpg",
-      "thumb": "images/dieshot/qualcomm/mwiq5jgh-Cloud-AI-100-14.67x20.59x0.thumb.jpg"
+      "addedAt": "2026-11-16T03:49:24.544Z"
     },
     {
       "id": "imvsx876rhag7z",
