@@ -941,8 +941,8 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
 .serial-dot.is-on{background:#30d158;box-shadow:0 0 0 3px rgba(48,209,88,.18)}
 .serial-term{
   height:min(58vh,600px);margin:0 12px;padding:8px;
-  border-radius:0;background:#1a1b26;overflow:hidden;
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+  border-radius:0;background:#0a0a0b;overflow:hidden;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);
 }
 /* 内层不带 padding：fit 量的是 .xterm 的父元素，外层 padding 会被算成可用列宽，
    导致最右一列（btop 的右边框）被挤出可视区 */
@@ -3750,19 +3750,19 @@ function serMakeTerm(){
   try{ var fsSaved = parseFloat(localStorage.getItem('layout.serialFont') || ''); if(fsSaved >= 9 && fsSaved <= 20) fs0 = fsSaved; }catch(e){}
   var term = new window.Terminal({
     cursorBlink:true,
-    cursorStyle:'bar',
+    cursorStyle:'block',
     fontFamily:'"Cascadia Mono","JetBrains Mono",Consolas,"DejaVu Sans Mono","Noto Sans Mono CJK SC","Microsoft YaHei",monospace',
     fontSize:fs0,
     lineHeight:1.28,
     scrollback:4000,
     theme:{
-      /* Tokyo Night：深蓝黑底 + 柔和前景，比纯白刺眼感低很多 */
-      background:'#1a1b26', foreground:'#c0caf5', cursor:'#7aa2f7', cursorAccent:'#1a1b26',
-      selectionBackground:'rgba(122,162,247,.30)',
-      black:'#15161e', red:'#f7768e', green:'#9ece6a', yellow:'#e0af68',
-      blue:'#7aa2f7', magenta:'#bb9af7', cyan:'#7dcfff', white:'#a9b1d6',
-      brightBlack:'#414868', brightRed:'#ff899d', brightGreen:'#b9f27c', brightYellow:'#ffd08a',
-      brightBlue:'#8db0ff', brightMagenta:'#d0a9ff', brightCyan:'#9be4ff', brightWhite:'#c8d3f5'
+      background:'#0a0a0b', foreground:'#e8e8ea', cursor:'#0a84ff', cursorAccent:'#0a0a0b',
+      selectionBackground:'rgba(56,139,253,.35)',
+      /* 经典 xterm / MobaXterm 风格：明度区分明显，红绿黄蓝一眼可辨 */
+      black:'#000000', red:'#cd0000', green:'#00cd00', yellow:'#cdcd00',
+      blue:'#0000ee', magenta:'#cd00cd', cyan:'#00cdcd', white:'#e5e5e5',
+      brightBlack:'#7f7f7f', brightRed:'#ff0000', brightGreen:'#00ff00', brightYellow:'#ffff00',
+      brightBlue:'#5c5cff', brightMagenta:'#ff00ff', brightCyan:'#00ffff', brightWhite:'#ffffff'
     }
   });
   var fit = new window.FitAddon.FitAddon();
