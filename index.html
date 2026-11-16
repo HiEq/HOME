@@ -3865,7 +3865,7 @@ function serSyncTty(quiet){
   SER.lastTtyAt = now;
   var c = serOutCols(), r = SER.term.rows;
   SER.ttySize = c + 'x' + r;
-  serWrite('stty rows ' + r + ' cols ' + c + ' 2>/dev/null; for d in /dev/ttyPS0 /dev/ttyS0 /dev/ttyGS0; do [ -e "$d" ] && sudo -n stty -F "$d" rows ' + r + ' cols ' + c + '; done\r');
+  serWrite('stty rows ' + r + ' cols ' + c + '\r');
   serHint(quiet ? ('已同步 tty 尺寸 ' + c + '×' + r + '。') : ('已执行 stty rows ' + r + ' cols ' + c + '。'));
   return true;
 }
