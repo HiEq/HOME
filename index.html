@@ -1204,6 +1204,8 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
               <label class="serial-chk"><input type="checkbox" id="serFilter" checked><span>过滤终端应答</span></label>
             </div>
             <div class="serial-group serial-acts">
+              <button class="btn ghost sm" id="serFontDown" title="缩小字号（列数变多）">A−</button>
+              <button class="btn ghost sm" id="serFontUp" title="放大字号（列数变少）">A+</button>
               <button class="btn ghost sm" id="serFull">全屏</button>
               <button class="btn ghost sm" id="serCopy">复制选中</button>
               <button class="btn ghost sm" id="serSave">下载日志</button>
@@ -1596,7 +1598,7 @@ var EN = {
   '开机期间锁定按键':'Lock keys during boot', '登录后同步本机时间':'Sync host clock after login',
   '过滤终端应答':'Filter terminal replies',
   '发送窗口尺寸':'Send window size', '复制选中':'Copy selection', '下载日志':'Download log', '清空':'Clear',
-  '全屏':'Full screen', '退出全屏':'Exit full screen',  '此页面仅在本机可用':'This page only works on this computer',
+  '全屏':'Full screen', '退出全屏':'Exit full screen', '字号':'Font size',  '此页面仅在本机可用':'This page only works on this computer',
   '插好 USB 串口后点「连接」。':'Plug in the USB serial adapter, then click Connect.',
   '── FPGA 终端 ──':'── FPGA terminal ──',
   'Web Serial 需要 HTTPS 或 localhost 页面。':'Web Serial needs an HTTPS or localhost page.',
@@ -3652,7 +3654,7 @@ var SER_ANSI_RE = /(?:\x1b\[[0-9;<=>?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1
 var SER = {
   term:null, fit:null, libs:false, libLoading:null, uiReady:false,
   port:null, reader:null, writer:null, connected:false, closing:false,
-  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'', alt:false, qcarry:'', askedSz:false,
+  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'', alt:false, qcarry:'',
   lastTickRx:0, lastTickAt:0, tick:null,
   carry:'', dec:null, chunks:[], chunkBytes:0, tail:'',
   keysOn:false, promptOk:false, clockArmed:false, clockDone:false,
@@ -3736,11 +3738,13 @@ function serMakeTerm(){
   if(SER.term || !window.Terminal) return;
   var box = $('serTerm');
   if(!box) return;
+  var fs0 = 13.2;
+  try{ var fsSaved = parseFloat(localStorage.getItem('layout.serialFont') || ''); if(fsSaved >= 9 && fsSaved <= 20) fs0 = fsSaved; }catch(e){}
   var term = new window.Terminal({
     cursorBlink:true,
     cursorStyle:'bar',
     fontFamily:'"Cascadia Mono","JetBrains Mono",Consolas,"DejaVu Sans Mono","Noto Sans Mono CJK SC","Microsoft YaHei",monospace',
-    fontSize:13.2,
+    fontSize:fs0,
     lineHeight:1.28,
     scrollback:4000,
     theme:{
@@ -3957,6 +3961,8 @@ function serEnsureUI(){
     SER.clockArmed = this.checked && SER.promptOk && !SER.clockDone;
   });
   $('serFilter').addEventListener('change', function(){ serSaveCfg({filter:this.checked}); });
+  $('serFontDown').addEventListener('click', function(){ serFontStep(-0.4); });
+  $('serFontUp').addEventListener('click', function(){ serFontStep(0.4); });
   $('serFull').addEventListener('click', function(){ serToggleFocus(); });
   document.addEventListener('keydown', function(e){
     var p = document.querySelector('.serial-panel');
@@ -4088,7 +4094,7 @@ async function serConnect(forcePick){
   SER.carry = ''; SER.dec = new TextDecoder('utf-8'); SER.tail = '';
   SER.keysOn = !cfg.bootLock; SER.promptOk = false;
   SER.clockArmed = !!cfg.clock; SER.clockDone = false;
-  SER.alt = false; SER.askedSz = false;
+  SER.alt = false;
   try{ port.addEventListener('disconnect', serOnDisconnect); }catch(e){}
   try{ SER.writer = port.writable.getWriter(); }catch(e){ SER.writer = null; }
 
@@ -4160,8 +4166,6 @@ function serOnBytes(u8){
   var q = SER.qcarry + s;
   if(q.indexOf('\x1b[18t') >= 0) serPushSize(true, true);
   SER.qcarry = q.slice(-3);
-  var sz = /SZ(\d+)[ ,]+(\d+)/.exec(s);
-  if(sz) serMatchBoard(parseInt(sz[2], 10));
   s = serFilterIn(s, serCfg().filter);
   if(!s) return;
   if(SER.term) SER.term.write(s);
@@ -4285,13 +4289,7 @@ function serTick(on){
        now - SER.lastKey > 1500 && now - SER.lastRx > 800){
       serAutoClock();
     }
-    /* 连上后第一次看到提示符，问一次板子的列数，按它把页面字号调准 */
-    if(SER.promptOk && !SER.alt && !SER.askedSz && SER.term &&
-       now - SER.lastKey > 800 && now - SER.lastRx > 600){
-      SER.askedSz = true;
-      serWrite('echo SZ$(stty size)\r');
-      serHint('正在读取板子列数…');
-    }
+    /* 不自动往 shell 里敲任何尺寸命令 */
   }, 500);
 }
 
@@ -4332,28 +4330,18 @@ function serCopy(){
     serHint(ok ? '已复制。' : '复制失败。', !ok);
   }
 }
-/* 板子画多少列，页面就调到多少列（多留 1 列余量）：字号缩一点点，
-   保证最后一列落在可视区内，满屏时也不需要拉窗口 */
-function serMatchBoard(cols){
-  if(!SER.term || !cols) return;
-  var target = cols + 1;
-  var tries = 0;
-  (function step(){
-    var t = SER.term;
-    if(!t || tries >= 4) return;
-    if(t.cols >= target){
-      serHint('已按板子 ' + cols + ' 列适配。');
-      return;
-    }
-    tries++;
-    var fs = parseFloat(t.options.fontSize) || 13.5;
-    var next = Math.round(fs * t.cols / target * 100) / 100;
-    next = Math.max(8, Math.min(20, next));
-    if(Math.abs(next - fs) < 0.05) return;
-    t.options.fontSize = next;
-    serFit();
-    setTimeout(step, 180);
-  })();
+/* 字号手动微调：字小了列数变多，板子画得再宽也能完整显示 */
+function serFontStep(d){
+  var t = SER.term;
+  if(!t) return;
+  var fs = parseFloat(t.options.fontSize) || 13.2;
+  var next = Math.round(Math.min(20, Math.max(9, fs + d)) * 10) / 10;
+  if(Math.abs(next - fs) < 0.05) return;
+  t.options.fontSize = next;
+  try{ localStorage.setItem('layout.serialFont', String(next)); }catch(e){}
+  serFit();
+  setTimeout(serFit, 120);
+  serHint(tr('字号') + ' ' + next + 'px · ' + t.cols + '×' + t.rows);
 }
 function serPushSize(quiet, force){
   if(!SER.connected || !SER.term) return;
