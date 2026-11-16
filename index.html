@@ -1204,6 +1204,7 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
               <label class="serial-chk"><input type="checkbox" id="serFilter" checked><span>过滤终端应答</span></label>
             </div>
             <div class="serial-group serial-acts">
+              <button class="btn ghost sm" id="serFitBoard">适配板子</button>
               <button class="btn ghost sm" id="serFull">全屏</button>
               <button class="btn ghost sm" id="serSize">发送窗口尺寸</button>
               <button class="btn ghost sm" id="serCopy">复制选中</button>
@@ -1597,8 +1598,7 @@ var EN = {
   '开机期间锁定按键':'Lock keys during boot', '登录后同步本机时间':'Sync host clock after login',
   '过滤终端应答':'Filter terminal replies',
   '发送窗口尺寸':'Send window size', '复制选中':'Copy selection', '下载日志':'Download log', '清空':'Clear',
-  '全屏':'Full screen', '退出全屏':'Exit full screen',
-  '此页面仅在本机可用':'This page only works on this computer',
+  '全屏':'Full screen', '退出全屏':'Exit full screen', '适配板子':'Fit board',  '此页面仅在本机可用':'This page only works on this computer',
   '插好 USB 串口后点「连接」。':'Plug in the USB serial adapter, then click Connect.',
   '── FPGA 终端 ──':'── FPGA terminal ──',
   'Web Serial 需要 HTTPS 或 localhost 页面。':'Web Serial needs an HTTPS or localhost page.',
@@ -3974,6 +3974,7 @@ function serEnsureUI(){
   $('serFilter').addEventListener('change', function(){ serSaveCfg({filter:this.checked}); });
   $('serSize').addEventListener('click', serSendSize);
   $('serFull').addEventListener('click', function(){ serToggleFocus(); });
+  $('serFitBoard').addEventListener('click', serFitBoard);
   document.addEventListener('keydown', function(e){
     var p = document.querySelector('.serial-panel');
     if(e.key === 'Escape' && p && p.classList.contains('is-focus')){
@@ -4343,6 +4344,14 @@ function serCopy(){
     document.body.removeChild(ta);
     serHint(ok ? '已复制。' : '复制失败。', !ok);
   }
+}
+/* 适配板子：tmux/byobu 的外层宽度只认串口 tty（TIOCSWINSZ），改它才会 SIGWINCH 重排。
+   页面里没法保证在提示符下，所以做成按钮，由用户在 shell 提示符处点一下 */
+function serFitBoard(){
+  if(!SER.connected || !SER.term){ serHint('串口未连接。', true); return; }
+  var c = SER.term.cols, r = SER.term.rows;
+  serWrite('stty rows ' + r + ' cols ' + c + ' 2>/dev/null; for d in /dev/ttyPS0 /dev/ttyS0 /dev/ttyGS0; do [ -e "$d" ] && sudo -n stty -F "$d" rows ' + r + ' cols ' + c + '; done\r');
+  serHint('已请求板子按 ' + c + '×' + r + ' 重排（需在 shell 提示符下，且 stty 有 NOPASSWD）。');
 }
 function serPushSize(quiet, force){
   if(!SER.connected || !SER.term) return;
