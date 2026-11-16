@@ -1648,7 +1648,7 @@ var DYN = [
   [/^已保存，之后的改动会直接提交到仓库。$/, 'Saved — future changes are committed to the repo.'],
   [/^已保存，但 Token 或仓库名为空，仍处于本机模式。$/, 'Saved, but token/repo is empty — still in local mode.'],
   /* FPGA 终端：带变量 / 计数的提示 */
-  [/^已连接 (\d+) 8N1。开机阶段按键锁定，见到提示符后解锁。$/, 'Connected at $1 8N1. Keys locked until the boot prompt.'],
+  [/^已连接 (\d+) 8N1。开机阶段按键锁定，见到提示符或输出停下后解锁。$/, 'Connected at $1 8N1. Keys locked until the prompt or a pause in output.'],
   [/^已连接 (\d+) 8N1。$/, 'Connected at $1 8N1.'],
   [/^已收 (.+) · (.+)\/s · 发 (.+)$/, 'RX $1 · $2/s · TX $3'],
   [/^已保存 (.+) 日志。$/, 'Saved $1 log.'],
@@ -3737,6 +3737,8 @@ function serMakeTerm(){
   if(window.ResizeObserver){
     try{ SER.ro = new ResizeObserver(serFit); SER.ro.observe(box); }catch(e){}
   }
+  /* 点在终端外圈的留白上也要能拿到焦点，否则键盘看着像“没反应” */
+  box.addEventListener('pointerdown', function(){ if(SER.term) SER.term.focus(); });
   serFit();
   setTimeout(serFit, 60);
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(serFit).catch(function(){});
@@ -3979,7 +3981,7 @@ async function serConnect(forcePick){
   serText($('serDevice'), serDevLabel(port));
   serUI(true);
   serTick(true);
-  serHint('已连接 ' + cfg.baud + ' 8N1。' + (cfg.bootLock ? '开机阶段按键锁定，见到提示符后解锁。' : ''));
+  serHint('已连接 ' + cfg.baud + ' 8N1。' + (cfg.bootLock ? '开机阶段按键锁定，见到提示符或输出停下后解锁。' : ''));
   if(SER.term) SER.term.focus();
   serReadLoop(port);
 }
@@ -4059,6 +4061,20 @@ function serFilterOut(s, dropReplies){
   return dropReplies ? s.replace(SER_REPLY_RE, '') : s;
 }
 function serTrack(s){
+  /* 全屏程序（btop / vim / tmux）一出现就说明已经过了开机阶段，必须能收键 */
+  if(/\x1b\[\?(?:1049|1047|47)h/.test(s)){
+    SER.keysOn = true;
+    SER.promptOk = false;
+  }
+  /* 板子重启：看到 bootloader / 内核启动的标志就重新锁上，避免打断 U-Boot */
+  if(/\bU-Boot 20\d\d\.\d|Hit any key to stop autoboot|Starting kernel \.\.\.|Freeing unused kernel memory/.test(s)){
+    if(serCfg().bootLock){
+      SER.keysOn = false;
+      SER.promptOk = false;
+      SER.clockArmed = false;
+      SER.clockDone = false;
+    }
+  }
   SER.tail = (SER.tail + s).slice(-600);
   var plain = SER.tail.replace(SER_ANSI_RE, '');
   if(/(login:|Password:)\s*$/.test(plain)){
@@ -4136,7 +4152,7 @@ function serTick(on){
     if(st) serText(st, '已收 ' + serBytes(SER.rx) + ' · ' + serBytes(rate) + '/s · 发 ' + serBytes(SER.tx));
 
     var cfg = serCfg();
-    if(cfg.bootLock && !SER.keysOn && now - SER.lastRx > 10000){
+    if(cfg.bootLock && !SER.keysOn && now - SER.lastRx > 2500){
       SER.keysOn = true;
       serHint('按键输入已解锁。');
     }
