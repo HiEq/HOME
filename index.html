@@ -1206,7 +1206,6 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
             <div class="serial-group serial-acts">
               <button class="btn ghost sm" id="serFitBoard">适配板子</button>
               <button class="btn ghost sm" id="serFull">全屏</button>
-              <button class="btn ghost sm" id="serSize">发送窗口尺寸</button>
               <button class="btn ghost sm" id="serCopy">复制选中</button>
               <button class="btn ghost sm" id="serSave">下载日志</button>
               <button class="btn ghost sm" id="serClear">清空</button>
@@ -3653,7 +3652,7 @@ var SER_ANSI_RE = /(?:\x1b\[[0-9;<=>?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1
 var SER = {
   term:null, fit:null, libs:false, libLoading:null, uiReady:false,
   port:null, reader:null, writer:null, connected:false, closing:false,
-  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'', alt:false, lastTtyAt:0, ttySize:'', qcarry:'',
+  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'', alt:false, qcarry:'', askedSz:false,
   lastTickRx:0, lastTickAt:0, tick:null,
   carry:'', dec:null, chunks:[], chunkBytes:0, tail:'',
   keysOn:false, promptOk:false, clockArmed:false, clockDone:false,
@@ -3843,9 +3842,7 @@ function serApplyFit(){
       if(core._renderService) core._renderService.clear();
       t.resize(cols, rows);
     }catch(e){}
-    /* shell 里直接改 tty（btop/fastfetch 读这个）；全屏程序里才回 CSI 尺寸应答，
-       不在提示符就先记着，回到提示符再补 */
-    if(!serSyncTty(true) && SER.alt) serPushSize(true);
+    /* 不再反向改板子尺寸：板子（byobu/btop）才是准的，页面去适配它 */
   }
   serDims();
   return true;
@@ -3857,17 +3854,6 @@ var SER_COL_MARGIN = 0;
 function serOutCols(){
   var c = SER.term ? SER.term.cols : 80;
   return Math.max(20, c - SER_COL_MARGIN);
-}
-function serSyncTty(quiet){
-  if(!SER.connected || !SER.term || !SER.promptOk || SER.alt) return false;
-  var now = Date.now();
-  if(quiet && now - SER.lastTtyAt < 700) return false;
-  SER.lastTtyAt = now;
-  var c = serOutCols(), r = SER.term.rows;
-  SER.ttySize = c + 'x' + r;
-  serWrite('stty rows ' + r + ' cols ' + c + '\r');
-  serHint(quiet ? ('已同步 tty 尺寸 ' + c + '×' + r + '。') : ('已执行 stty rows ' + r + ' cols ' + c + '。'));
-  return true;
 }
 function serDims(){
   var d = $('serDims');
@@ -3972,7 +3958,6 @@ function serEnsureUI(){
     SER.clockArmed = this.checked && SER.promptOk && !SER.clockDone;
   });
   $('serFilter').addEventListener('change', function(){ serSaveCfg({filter:this.checked}); });
-  $('serSize').addEventListener('click', serSendSize);
   $('serFull').addEventListener('click', function(){ serToggleFocus(); });
   $('serFitBoard').addEventListener('click', serFitBoard);
   document.addEventListener('keydown', function(e){
@@ -4105,7 +4090,7 @@ async function serConnect(forcePick){
   SER.carry = ''; SER.dec = new TextDecoder('utf-8'); SER.tail = '';
   SER.keysOn = !cfg.bootLock; SER.promptOk = false;
   SER.clockArmed = !!cfg.clock; SER.clockDone = false;
-  SER.alt = false; SER.ttySize = '';
+  SER.alt = false; SER.askedSz = false;
   try{ port.addEventListener('disconnect', serOnDisconnect); }catch(e){}
   try{ SER.writer = port.writable.getWriter(); }catch(e){ SER.writer = null; }
 
@@ -4177,6 +4162,8 @@ function serOnBytes(u8){
   var q = SER.qcarry + s;
   if(q.indexOf('\x1b[18t') >= 0) serPushSize(true, true);
   SER.qcarry = q.slice(-3);
+  var sz = /SZ(\d+)[ ,]+(\d+)/.exec(s);
+  if(sz) serMatchBoard(parseInt(sz[2], 10));
   s = serFilterIn(s, serCfg().filter);
   if(!s) return;
   if(SER.term) SER.term.write(s);
@@ -4300,10 +4287,10 @@ function serTick(on){
        now - SER.lastKey > 1500 && now - SER.lastRx > 800){
       serAutoClock();
     }
-    /* 停在提示符时，只要当前尺寸和 tty 记录不一致就补一次（btop 读的是 tty） */
-    if(SER.promptOk && !SER.alt && SER.term && SER.ttySize !== (serOutCols() + 'x' + SER.term.rows) &&
-       now - SER.lastKey > 500 && now - SER.lastRx > 350){
-      serSyncTty(false);
+    /* 连上后第一次看到 shell 提示符，读一次板子尺寸并按它调字号 */
+    if(SER.promptOk && !SER.alt && !SER.askedSz && SER.term &&
+       now - SER.lastKey > 700 && now - SER.lastRx > 500){
+      serFitBoard();
     }
   }, 500);
 }
@@ -4347,11 +4334,39 @@ function serCopy(){
 }
 /* 适配板子：tmux/byobu 的外层宽度只认串口 tty（TIOCSWINSZ），改它才会 SIGWINCH 重排。
    页面里没法保证在提示符下，所以做成按钮，由用户在 shell 提示符处点一下 */
+/* 适配板子：读板子的真实尺寸（stty size），再把网页字号调到正好这么多列，
+   这样 byobu/btop 画多少列页面就显示多少列，不裁也不留边 */
 function serFitBoard(){
   if(!SER.connected || !SER.term){ serHint('串口未连接。', true); return; }
-  var c = SER.term.cols, r = SER.term.rows;
-  serWrite('stty rows ' + r + ' cols ' + c + ' 2>/dev/null; for d in /dev/ttyPS0 /dev/ttyS0 /dev/ttyGS0; do [ -e "$d" ] && sudo -n stty -F "$d" rows ' + r + ' cols ' + c + '; done\r');
-  serHint('已请求板子按 ' + c + '×' + r + ' 重排（需在 shell 提示符下，且 stty 有 NOPASSWD）。');
+  serWrite('echo SZ$(stty size)\r');
+  SER.askedSz = true;
+  serHint('正在读取板子尺寸…');
+}
+function serMatchBoard(cols){
+  if(!SER.term || !cols || cols < 20) return;
+  var t = SER.term;
+  var cur = t.cols;
+  if(Math.abs(cols - cur) < 1) return;
+  var fs = parseFloat(t.options.fontSize) || 13.5;
+  var next = Math.round(fs * cur / cols * 10) / 10;
+  next = Math.max(8, Math.min(20, next));
+  if(Math.abs(next - fs) < 0.1) return;
+  t.options.fontSize = next;
+  serFit();
+  setTimeout(function(){
+    serFit();
+    var t2 = SER.term;
+    if(!t2 || t2.cols === cols) return;
+    var fs2 = parseFloat(t2.options.fontSize) || next;
+    var n2 = Math.round(fs2 * t2.cols / cols * 10) / 10;
+    n2 = Math.max(8, Math.min(20, n2));
+    if(Math.abs(n2 - fs2) >= 0.1){
+      t2.options.fontSize = n2;
+      serFit();
+      setTimeout(serFit, 100);
+    }
+  }, 150);
+  serHint('已按板子宽度适配：' + cols + ' 列。');
 }
 function serPushSize(quiet, force){
   if(!SER.connected || !SER.term) return;
@@ -4364,18 +4379,9 @@ function serPushSize(quiet, force){
   if(!quiet) serHint('已发送窗口尺寸 ' + c + '×' + r + '。');
 }
 function serSendSize(){
-  if(!SER.connected){ serHint('串口未连接。', true); return; }
-  if(!SER.term) return;
-  var c = SER.term.cols, r = SER.term.rows;
-  /* 停在 shell 提示符时直接改 tty 尺寸，这才是 btop/fastfetch 读到的值；
-     全屏程序里没法插命令，只能回 CSI 尺寸应答（tmux 认这个） */
-  if(!SER.alt && SER.promptOk){
-    SER.lastTtyAt = 0;
-    if(serSyncTty(false)) return;
-  }
-  SER.lastSizeAt = 0;
-  serPushSize(false);
+  serFitBoard();
 }
+/* 旧按钮已并入「适配板子」 */
 
 /* ---------- 移动端底部 Dock（由 NAV 数据生成） ---------- */
 var DOCK_ICONS = {
