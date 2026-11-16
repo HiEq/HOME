@@ -3757,7 +3757,7 @@ function serFit(){
   if(!SER.fit || !SER.term || !serVisible()) return;
   if(SER.fitTimer) return;
   var run = function(){
-    SER.fitTimer = 0;
+    if(SER.fitTimer){ clearTimeout(SER.fitTimer); SER.fitTimer = 0; }
     if(SER.fitRq){ cancelAnimationFrame(SER.fitRq); SER.fitRq = 0; }
     if(!SER.fit || !SER.term || !serVisible()) return;
     try{ SER.fit.fit(); }catch(e){}
