@@ -941,8 +941,8 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
 .serial-dot.is-on{background:#30d158;box-shadow:0 0 0 3px rgba(48,209,88,.18)}
 .serial-term{
   height:min(58vh,600px);margin:0 12px;padding:8px;
-  border-radius:0;background:#0a0a0b;overflow:hidden;
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);
+  border-radius:0;background:#1a1b26;overflow:hidden;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
 }
 /* 内层不带 padding：fit 量的是 .xterm 的父元素，外层 padding 会被算成可用列宽，
    导致最右一列（btop 的右边框）被挤出可视区 */
@@ -3756,12 +3756,13 @@ function serMakeTerm(){
     lineHeight:1.28,
     scrollback:4000,
     theme:{
-      background:'#0a0a0b', foreground:'#e8e8ea', cursor:'#0a84ff', cursorAccent:'#0a0a0b',
-      selectionBackground:'rgba(10,132,255,.35)',
-      black:'#1c1c1e', red:'#ff453a', green:'#32d74b', yellow:'#ffd60a',
-      blue:'#0a84ff', magenta:'#bf5af2', cyan:'#64d2ff', white:'#d1d1d6',
-      brightBlack:'#636366', brightRed:'#ff6961', brightGreen:'#5ffd78', brightYellow:'#ffec6e',
-      brightBlue:'#64a8ff', brightMagenta:'#da8fff', brightCyan:'#70d7ff', brightWhite:'#ffffff'
+      /* Tokyo Night：深蓝黑底 + 柔和前景，比纯白刺眼感低很多 */
+      background:'#1a1b26', foreground:'#c0caf5', cursor:'#7aa2f7', cursorAccent:'#1a1b26',
+      selectionBackground:'rgba(122,162,247,.30)',
+      black:'#15161e', red:'#f7768e', green:'#9ece6a', yellow:'#e0af68',
+      blue:'#7aa2f7', magenta:'#bb9af7', cyan:'#7dcfff', white:'#a9b1d6',
+      brightBlack:'#414868', brightRed:'#ff899d', brightGreen:'#b9f27c', brightYellow:'#ffd08a',
+      brightBlue:'#8db0ff', brightMagenta:'#d0a9ff', brightCyan:'#9be4ff', brightWhite:'#c8d3f5'
     }
   });
   var fit = new window.FitAddon.FitAddon();
