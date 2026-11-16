@@ -62,8 +62,8 @@
 
 ### 🖥️ FPGA 终端（`#/serial`）
 - **Web Serial 直连**：浏览器连本机 USB-TTL（CH340 等），无后端
-- **真彩终端**：本地打包 **xterm.js 5.5.0**（`vendor/xterm/`，MIT），
-  ANSI / 256 色 / truecolor，跑 `btop` 不掉色
+- **真彩终端**：本地打包 **xterm.js 5.5.0** ＋ WebGL 渲染器（`vendor/xterm/`，MIT），
+  按设备像素画格子，边框线条和原生终端一样连贯，ANSI / 256 色 / truecolor，跑 `btop` 不掉色
 - 默认 **921600 8N1**，DTR / RTS 关闭
 - **开机期间锁定按键**：见到 `login:` / 提示符解锁，闲置 10 秒也解锁
 - **过滤终端应答**：两个方向都丢弃 `ESC[8;行;列t` / `ESC[行列R`，login 不会回显 `^[[8;51;179t`

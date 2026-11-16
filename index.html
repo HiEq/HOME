@@ -3655,7 +3655,7 @@ var SER_ANSI_RE = /(?:\x1b\[[0-9;<=>?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1
 var SER = {
   term:null, fit:null, libs:false, libLoading:null, uiReady:false,
   port:null, reader:null, writer:null, connected:false, closing:false,
-  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'', alt:false, qcarry:'',
+  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'', alt:false, qcarry:'', webgl:false,
   lastTickRx:0, lastTickAt:0, tick:null,
   carry:'', dec:null, chunks:[], chunkBytes:0, tail:'',
   keysOn:false, promptOk:false, clockArmed:false, clockDone:false,
@@ -3726,7 +3726,14 @@ function serLoadLibs(){
     s.onload = function(){
       var f = document.createElement('script');
       f.src = 'vendor/xterm/addon-fit.js'; f.async = true;
-      f.onload = function(){ SER.libs = true; resolve(); };
+      f.onload = function(){
+        /* WebGL 渲染器：和原生终端一样按整数像素画格子，线更连贯；加载失败就退回 DOM */
+        var w = document.createElement('script');
+        w.src = 'vendor/xterm/addon-webgl.js'; w.async = true;
+        w.onload = function(){ SER.libs = true; resolve(); };
+        w.onerror = function(){ SER.libs = true; resolve(); };
+        document.head.appendChild(w);
+      };
       f.onerror = function(){ reject(new Error('addon-fit')); };
       document.head.appendChild(f);
     };
@@ -3759,6 +3766,14 @@ function serMakeTerm(){
   });
   var fit = new window.FitAddon.FitAddon();
   term.loadAddon(fit);
+  if(window.WebglAddon && window.WebglAddon.WebglAddon){
+    try{
+      var wg = new window.WebglAddon.WebglAddon();
+      wg.onContextLoss(function(){ SER.webgl = false; try{ wg.dispose(); }catch(e){} });
+      term.loadAddon(wg);
+      SER.webgl = true;
+    }catch(e){ SER.webgl = false; }
+  }
   term.open(box);
   term.onData(function(d){ serSendKeys(d); });
   term.onBinary(function(d){ serSendKeys(d, true); });
@@ -3840,7 +3855,7 @@ function serApplyFit(){
      cell.width + spacing；只按 cell.width 算列数会多出 2~4 列，右边被视口裁掉 */
   var rowsEl = document.querySelector('#serTerm .xterm-rows');
   var gap = rowsEl ? (parseFloat(getComputedStyle(rowsEl).letterSpacing) || 0) : 0;
-  if(gap > 0) cols = Math.max(2, Math.floor(vp.clientWidth / (cell.width + gap)));
+  if(!SER.webgl && gap > 0) cols = Math.max(2, Math.floor(vp.clientWidth / (cell.width + gap)));
   var rows = Math.max(1, Math.floor(vp.clientHeight / cell.height));
   if(cols !== t.cols || rows !== t.rows){
     try{
