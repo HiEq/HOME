@@ -940,8 +940,8 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
 .serial-dot{width:8px;height:8px;border-radius:50%;background:var(--fg3);box-shadow:0 0 0 3px rgba(128,128,128,.14);flex:none}
 .serial-dot.is-on{background:#30d158;box-shadow:0 0 0 3px rgba(48,209,88,.18)}
 .serial-term{
-  height:min(58vh,600px);margin:0 12px;padding:14px 10px;
-  border-radius:12px;background:#0a0a0b;overflow:hidden;
+  height:min(58vh,600px);margin:0 12px;padding:8px;
+  border-radius:0;background:#0a0a0b;overflow:hidden;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);
 }
 /* 内层不带 padding：fit 量的是 .xterm 的父元素，外层 padding 会被算成可用列宽，
@@ -1204,7 +1204,6 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
               <label class="serial-chk"><input type="checkbox" id="serFilter" checked><span>过滤终端应答</span></label>
             </div>
             <div class="serial-group serial-acts">
-              <button class="btn ghost sm" id="serFitBoard">适配板子</button>
               <button class="btn ghost sm" id="serFull">全屏</button>
               <button class="btn ghost sm" id="serCopy">复制选中</button>
               <button class="btn ghost sm" id="serSave">下载日志</button>
@@ -1597,7 +1596,7 @@ var EN = {
   '开机期间锁定按键':'Lock keys during boot', '登录后同步本机时间':'Sync host clock after login',
   '过滤终端应答':'Filter terminal replies',
   '发送窗口尺寸':'Send window size', '复制选中':'Copy selection', '下载日志':'Download log', '清空':'Clear',
-  '全屏':'Full screen', '退出全屏':'Exit full screen', '适配板子':'Fit board',  '此页面仅在本机可用':'This page only works on this computer',
+  '全屏':'Full screen', '退出全屏':'Exit full screen',  '此页面仅在本机可用':'This page only works on this computer',
   '插好 USB 串口后点「连接」。':'Plug in the USB serial adapter, then click Connect.',
   '── FPGA 终端 ──':'── FPGA terminal ──',
   'Web Serial 需要 HTTPS 或 localhost 页面。':'Web Serial needs an HTTPS or localhost page.',
@@ -3652,7 +3651,7 @@ var SER_ANSI_RE = /(?:\x1b\[[0-9;<=>?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1
 var SER = {
   term:null, fit:null, libs:false, libLoading:null, uiReady:false,
   port:null, reader:null, writer:null, connected:false, closing:false,
-  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'', alt:false, qcarry:'', askedSz:false,
+  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'', alt:false, qcarry:'',
   lastTickRx:0, lastTickAt:0, tick:null,
   carry:'', dec:null, chunks:[], chunkBytes:0, tail:'',
   keysOn:false, promptOk:false, clockArmed:false, clockDone:false,
@@ -3831,18 +3830,12 @@ function serApplyFit(){
     return false;
   }
   var cols = Math.max(2, Math.floor(vp.clientWidth / cell.width));
-  /* xterm 的 DOM 渲染会额外加 letter-spacing（DPR 非整数时），字符实际步进是
-     cell.width + spacing；只按 cell.width 算列数会多出 2~4 列，右边被视口裁掉 */
-  var rowsEl = document.querySelector('#serTerm .xterm-rows');
-  var gap = rowsEl ? (parseFloat(getComputedStyle(rowsEl).letterSpacing) || 0) : 0;
-  if(gap > 0) cols = Math.max(2, Math.floor(vp.clientWidth / (cell.width + gap)));
   var rows = Math.max(1, Math.floor(vp.clientHeight / cell.height));
   if(cols !== t.cols || rows !== t.rows){
     try{
       if(core._renderService) core._renderService.clear();
       t.resize(cols, rows);
     }catch(e){}
-    /* 不再反向改板子尺寸：板子（byobu/btop）才是准的，页面去适配它 */
   }
   serDims();
   return true;
@@ -3959,7 +3952,6 @@ function serEnsureUI(){
   });
   $('serFilter').addEventListener('change', function(){ serSaveCfg({filter:this.checked}); });
   $('serFull').addEventListener('click', function(){ serToggleFocus(); });
-  $('serFitBoard').addEventListener('click', serFitBoard);
   document.addEventListener('keydown', function(e){
     var p = document.querySelector('.serial-panel');
     if(e.key === 'Escape' && p && p.classList.contains('is-focus')){
@@ -4090,7 +4082,7 @@ async function serConnect(forcePick){
   SER.carry = ''; SER.dec = new TextDecoder('utf-8'); SER.tail = '';
   SER.keysOn = !cfg.bootLock; SER.promptOk = false;
   SER.clockArmed = !!cfg.clock; SER.clockDone = false;
-  SER.alt = false; SER.askedSz = false;
+  SER.alt = false;
   try{ port.addEventListener('disconnect', serOnDisconnect); }catch(e){}
   try{ SER.writer = port.writable.getWriter(); }catch(e){ SER.writer = null; }
 
@@ -4162,8 +4154,6 @@ function serOnBytes(u8){
   var q = SER.qcarry + s;
   if(q.indexOf('\x1b[18t') >= 0) serPushSize(true, true);
   SER.qcarry = q.slice(-3);
-  var sz = /SZ(\d+)[ ,]+(\d+)/.exec(s);
-  if(sz) serMatchBoard(parseInt(sz[2], 10));
   s = serFilterIn(s, serCfg().filter);
   if(!s) return;
   if(SER.term) SER.term.write(s);
@@ -4287,11 +4277,7 @@ function serTick(on){
        now - SER.lastKey > 1500 && now - SER.lastRx > 800){
       serAutoClock();
     }
-    /* 连上后第一次看到 shell 提示符，读一次板子尺寸并按它调字号 */
-    if(SER.promptOk && !SER.alt && !SER.askedSz && SER.term &&
-       now - SER.lastKey > 700 && now - SER.lastRx > 500){
-      serFitBoard();
-    }
+    /* 停在提示符时不做任何尺寸/字号适配 */
   }, 500);
 }
 
@@ -4332,42 +4318,6 @@ function serCopy(){
     serHint(ok ? '已复制。' : '复制失败。', !ok);
   }
 }
-/* 适配板子：tmux/byobu 的外层宽度只认串口 tty（TIOCSWINSZ），改它才会 SIGWINCH 重排。
-   页面里没法保证在提示符下，所以做成按钮，由用户在 shell 提示符处点一下 */
-/* 适配板子：读板子的真实尺寸（stty size），再把网页字号调到正好这么多列，
-   这样 byobu/btop 画多少列页面就显示多少列，不裁也不留边 */
-function serFitBoard(){
-  if(!SER.connected || !SER.term){ serHint('串口未连接。', true); return; }
-  serWrite('echo SZ$(stty size)\r');
-  SER.askedSz = true;
-  serHint('正在读取板子尺寸…');
-}
-function serMatchBoard(cols){
-  if(!SER.term || !cols || cols < 20) return;
-  var t = SER.term;
-  var cur = t.cols;
-  if(Math.abs(cols - cur) < 1) return;
-  var fs = parseFloat(t.options.fontSize) || 13.5;
-  var next = Math.round(fs * cur / cols * 10) / 10;
-  next = Math.max(8, Math.min(20, next));
-  if(Math.abs(next - fs) < 0.1) return;
-  t.options.fontSize = next;
-  serFit();
-  setTimeout(function(){
-    serFit();
-    var t2 = SER.term;
-    if(!t2 || t2.cols === cols) return;
-    var fs2 = parseFloat(t2.options.fontSize) || next;
-    var n2 = Math.round(fs2 * t2.cols / cols * 10) / 10;
-    n2 = Math.max(8, Math.min(20, n2));
-    if(Math.abs(n2 - fs2) >= 0.1){
-      t2.options.fontSize = n2;
-      serFit();
-      setTimeout(serFit, 100);
-    }
-  }, 150);
-  serHint('已按板子宽度适配：' + cols + ' 列。');
-}
 function serPushSize(quiet, force){
   if(!SER.connected || !SER.term) return;
   var now = Date.now();
@@ -4378,10 +4328,6 @@ function serPushSize(quiet, force){
   serWrite('\x1b[8;' + r + ';' + c + 't');
   if(!quiet) serHint('已发送窗口尺寸 ' + c + '×' + r + '。');
 }
-function serSendSize(){
-  serFitBoard();
-}
-/* 旧按钮已并入「适配板子」 */
 
 /* ---------- 移动端底部 Dock（由 NAV 数据生成） ---------- */
 var DOCK_ICONS = {
