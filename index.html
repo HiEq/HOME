@@ -953,7 +953,25 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
   scrollbar-width:none;-ms-overflow-style:none;
 }
 .serial-term .xterm-viewport::-webkit-scrollbar{width:0;height:0;display:none}
-.serial-send{flex:1 1 340px}
+/* 全屏：面板铺满视口，终端自己撑开，给 fastfetch / btop 这类占满屏幕的程序用 */
+.serial-panel.is-focus{
+  position:fixed;inset:10px;z-index:300;margin:0;
+  display:flex;flex-direction:column;
+  box-shadow:0 24px 80px rgba(0,0,0,.45), inset 0 0 0 1px var(--hairline);
+}
+.serial-panel.is-focus #serBody{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
+.serial-panel.is-focus .serial-term{flex:1 1 auto;height:auto !important;min-height:160px}
+/* 桌面端：终端吃掉导航与页脚之间的全部高度，不再靠 58vh 猜 */
+@media (min-width:721px){
+  #view-serial.is-active{display:flex;flex-direction:column}
+  #view-serial .serial-top{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
+  #view-serial .serial-panel{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
+  #view-serial #serBody{display:flex;flex-direction:column;flex:1 1 auto;min-height:0}
+  #view-serial .serial-term{flex:1 1 auto;height:auto;min-height:280px}
+}
+.serial-send{flex:1 1 420px}
+.serial-checks{flex:1 1 auto;gap:10px 18px}
+.serial-acts{flex:0 1 auto;gap:8px;margin-left:auto}
 .serial-bar .dd-btn,
 .serial-bar .btn.sm{height:34px;padding:0 15px;font-size:13.5px}
 .serial-input{
@@ -964,10 +982,8 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
 }
 .serial-input:focus{border-color:var(--blue);background:var(--bg)}
 .serial-input:disabled{opacity:.5}
-.serial-tools{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px 22px;padding:14px 20px 4px}
 .serial-chk{display:inline-flex;align-items:center;gap:8px;font-size:13.5px;color:var(--fg2);cursor:pointer;user-select:none}
 .serial-chk input{width:16px;height:16px;margin:0;accent-color:var(--blue)}
-.serial-spacer{display:none}
 .serial-hint{padding:10px 20px 16px;font-size:13px;line-height:1.6;color:var(--fg2);min-height:21px}
 .serial-hint.is-warn{color:#c26a00}
 :root[data-theme="dark"] .serial-hint.is-warn{color:#ffb340}
@@ -977,7 +993,8 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
   .serial-panel{margin-bottom:12px}
   .serial-term{height:52vh;margin:0 10px}
   .serial-bar{padding:13px 16px}
-  .serial-tools{padding:12px 16px 4px}
+  .serial-send,.serial-checks,.serial-acts{flex:1 1 100%;margin-left:0}
+  .serial-acts{justify-content:flex-start}
   .serial-hint{padding:8px 16px 14px}
   .serial-stat{margin-left:0;flex-basis:100%}
 }
@@ -1167,7 +1184,7 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
 
           <div class="serial-term"><div id="serTerm"></div></div>
 
-          <div class="serial-bar">
+          <div class="serial-bar serial-actions">
             <div class="serial-group serial-send">
               <span class="serial-label">发送</span>
               <input class="serial-input" id="serSendText" type="text" placeholder="回车发送" autocomplete="off" spellcheck="false" disabled>
@@ -1180,17 +1197,18 @@ footer .foot-links a:hover{color:var(--blue);text-decoration:none}
               </div>
               <button class="btn ghost sm" id="serSendBtn" disabled>发送</button>
             </div>
-          </div>
-
-          <div class="serial-tools">
-            <label class="serial-chk"><input type="checkbox" id="serBootLock" checked><span>开机期间锁定按键</span></label>
-            <label class="serial-chk"><input type="checkbox" id="serClock" checked><span>登录后同步本机时间</span></label>
-            <label class="serial-chk"><input type="checkbox" id="serFilter" checked><span>过滤终端应答</span></label>
-            <span class="serial-spacer"></span>
-            <button class="btn ghost sm" id="serSize">发送窗口尺寸</button>
-            <button class="btn ghost sm" id="serCopy">复制选中</button>
-            <button class="btn ghost sm" id="serSave">下载日志</button>
-            <button class="btn ghost sm" id="serClear">清空</button>
+            <div class="serial-group serial-checks">
+              <label class="serial-chk"><input type="checkbox" id="serBootLock" checked><span>开机期间锁定按键</span></label>
+              <label class="serial-chk"><input type="checkbox" id="serClock" checked><span>登录后同步本机时间</span></label>
+              <label class="serial-chk"><input type="checkbox" id="serFilter" checked><span>过滤终端应答</span></label>
+            </div>
+            <div class="serial-group serial-acts">
+              <button class="btn ghost sm" id="serFull">全屏</button>
+              <button class="btn ghost sm" id="serSize">发送窗口尺寸</button>
+              <button class="btn ghost sm" id="serCopy">复制选中</button>
+              <button class="btn ghost sm" id="serSave">下载日志</button>
+              <button class="btn ghost sm" id="serClear">清空</button>
+            </div>
           </div>
           <div class="serial-hint" id="serHint">插好 USB 串口后点「连接」。</div>
         </div>
@@ -1578,6 +1596,7 @@ var EN = {
   '开机期间锁定按键':'Lock keys during boot', '登录后同步本机时间':'Sync host clock after login',
   '过滤终端应答':'Filter terminal replies',
   '发送窗口尺寸':'Send window size', '复制选中':'Copy selection', '下载日志':'Download log', '清空':'Clear',
+  '全屏':'Full screen', '退出全屏':'Exit full screen',
   '此页面仅在本机可用':'This page only works on this computer',
   '插好 USB 串口后点「连接」。':'Plug in the USB serial adapter, then click Connect.',
   '── FPGA 终端 ──':'── FPGA terminal ──',
@@ -3770,12 +3789,30 @@ function serFit(){
     if(SER.fitTimer){ clearTimeout(SER.fitTimer); SER.fitTimer = 0; }
     if(SER.fitRq){ cancelAnimationFrame(SER.fitRq); SER.fitRq = 0; }
     if(!SER.fit || !SER.term || !serVisible()) return;
+    serLayout();
     serApplyFit();
     var box = $('serTerm');
     if(box){ SER.lastW = box.clientWidth; SER.lastH = box.clientHeight; }
   };
   SER.fitRq = requestAnimationFrame(run);
   SER.fitTimer = setTimeout(run, 120);   /* 后台标签页里 rAF 不跑，定时器兜底 */
+}
+/* 让串口页正好占满「导航栏到页脚」之间的高度：终端是 flex 的，多高都吃得下 */
+function serLayout(){
+  var sec = document.getElementById('view-serial');
+  if(!sec) return;
+  if(window.innerWidth <= 720){ sec.style.height = ''; return; }
+  var nav = document.querySelector('.nav');
+  var ft = document.querySelector('footer');
+  var top = nav ? nav.getBoundingClientRect().bottom : 0;
+  var fh = ft ? ft.offsetHeight : 0;
+  var fitH = Math.round(window.innerHeight - top - fh - 24);   /* 正好一屏（页脚仍可见） */
+  var bh = 0;
+  Array.prototype.forEach.call(document.querySelectorAll('.serial-bar'), function(e){ bh += e.offsetHeight; });
+  var hint = document.querySelector('.serial-hint');
+  var chrome = 48 + bh + (hint ? hint.offsetHeight : 0) + 22;   /* 上下留白 + 两行控制条 + 终端内边距 */
+  var base = Math.round(window.innerHeight * 0.58) + chrome;    /* 不缩水：至少保留原来 58vh 的终端 */
+  sec.style.height = Math.max(360, fitH, base) + 'px';
 }
 /* 直接用视口的实际内容宽度算行列，不走 FitAddon 的父元素测量：
    FitAddon 量的是 .xterm 的父元素宽度，外壳 padding 会被当成可用列宽，
@@ -3902,6 +3939,14 @@ function serEnsureUI(){
   });
   $('serFilter').addEventListener('change', function(){ serSaveCfg({filter:this.checked}); });
   $('serSize').addEventListener('click', serSendSize);
+  $('serFull').addEventListener('click', function(){ serToggleFocus(); });
+  document.addEventListener('keydown', function(e){
+    var p = document.querySelector('.serial-panel');
+    if(e.key === 'Escape' && p && p.classList.contains('is-focus')){
+      serToggleFocus(false);
+      e.preventDefault();
+    }
+  });
   $('serCopy').addEventListener('click', serCopy);
   $('serSave').addEventListener('click', serSaveLog);
   $('serClear').addEventListener('click', serClear);
@@ -3932,8 +3977,26 @@ function serEnter(){
     serHint('终端组件加载失败。', true);
   });
 }
+function serToggleFocus(on){
+  var panel = document.querySelector('.serial-panel');
+  if(!panel) return;
+  var next = (on == null) ? !panel.classList.contains('is-focus') : !!on;
+  panel.classList.toggle('is-focus', next);
+  var b = $('serFull');
+  if(b) serText(b, next ? '退出全屏' : '全屏');
+  serLayout();
+  serFit();
+  setTimeout(serFit, 120);
+  if(SER.term) SER.term.focus();
+}
 function serLeave(){
   if(SER.connected || SER.port) serDisconnect(true);
+  var p = document.querySelector('.serial-panel');
+  if(p && p.classList.contains('is-focus')){
+    p.classList.remove('is-focus');
+    var b = $('serFull');
+    if(b) serText(b, '全屏');
+  }
 }
 
 /* ---------- 连接 / 断开 ---------- */
