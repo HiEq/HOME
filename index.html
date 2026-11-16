@@ -3832,6 +3832,11 @@ function serApplyFit(){
     return false;
   }
   var cols = Math.max(2, Math.floor(vp.clientWidth / cell.width));
+  /* xterm 的 DOM 渲染会额外加 letter-spacing（DPR 非整数时），字符实际步进是
+     cell.width + spacing；只按 cell.width 算列数会多出 2~4 列，右边被视口裁掉 */
+  var rowsEl = document.querySelector('#serTerm .xterm-rows');
+  var gap = rowsEl ? (parseFloat(getComputedStyle(rowsEl).letterSpacing) || 0) : 0;
+  if(gap > 0) cols = Math.max(2, Math.floor(vp.clientWidth / (cell.width + gap)));
   var rows = Math.max(1, Math.floor(vp.clientHeight / cell.height));
   if(cols !== t.cols || rows !== t.rows){
     try{
@@ -3848,7 +3853,7 @@ function serApplyFit(){
 /* 让板子的 tty 尺寸跟网页一致 */
 /* 板子的程序和网页之间总差 1 列（tmux 按其内部宽度排版），少报 2 列当安全边距，
    宁可右边空两列也不裁字 */
-var SER_COL_MARGIN = 2;
+var SER_COL_MARGIN = 0;
 function serOutCols(){
   var c = SER.term ? SER.term.cols : 80;
   return Math.max(20, c - SER_COL_MARGIN);
