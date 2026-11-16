@@ -3653,7 +3653,7 @@ var SER_ANSI_RE = /(?:\x1b\[[0-9;<=>?]*[ -/]*[@-~]|\x1b\][^\x07\x1b]*(?:\x07|\x1
 var SER = {
   term:null, fit:null, libs:false, libLoading:null, uiReady:false,
   port:null, reader:null, writer:null, connected:false, closing:false,
-  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'', alt:false, lastTtyAt:0, ttySize:'',
+  rx:0, tx:0, t0:0, lastRx:0, lastKey:0, lastSizeAt:0, lastSize:'', alt:false, lastTtyAt:0, ttySize:'', qcarry:'',
   lastTickRx:0, lastTickAt:0, tick:null,
   carry:'', dec:null, chunks:[], chunkBytes:0, tail:'',
   keysOn:false, promptOk:false, clockArmed:false, clockDone:false,
@@ -4160,7 +4160,10 @@ function serOnBytes(u8){
   var s = '';
   if(SER.dec) s = SER.dec.decode(u8, {stream:true});
   if(!s) return;
-  if(/\x1b\[18t/.test(s)) serPushSize(true);   /* 板子/tmux 问尺寸，按当前窗口回报 */
+  /* 板子 / tmux 问尺寸（ESC[18t，可能被拆成两批）：立刻回报，不能节流 */
+  var q = SER.qcarry + s;
+  if(q.indexOf('\x1b[18t') >= 0) serPushSize(true, true);
+  SER.qcarry = q.slice(-3);
   s = serFilterIn(s, serCfg().filter);
   if(!s) return;
   if(SER.term) SER.term.write(s);
@@ -4329,10 +4332,10 @@ function serCopy(){
     serHint(ok ? '已复制。' : '复制失败。', !ok);
   }
 }
-function serPushSize(quiet){
+function serPushSize(quiet, force){
   if(!SER.connected || !SER.term) return;
   var now = Date.now();
-  if(quiet && now - SER.lastSizeAt < 400) return;   /* 拖动窗口时别刷屏 */
+  if(quiet && !force && now - SER.lastSizeAt < 400) return;   /* 拖动窗口时别刷屏 */
   SER.lastSizeAt = now;
   SER.lastSize = SER.term.cols + 'x' + SER.term.rows;
   serWrite('\x1b[8;' + SER.term.rows + ';' + SER.term.cols + 't');
