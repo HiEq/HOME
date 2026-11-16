@@ -23,6 +23,23 @@
   },
   "items": [
     {
+      "id": "imwiq5jggch4mq",
+      "coll": "dieshot",
+      "title": "Cloud AI 100",
+      "desc": "TSMC 7nm",
+      "tags": [
+        "Qualcomm"
+      ],
+      "name": "Cloud AI 100 14.67x20.59x0.jpg",
+      "size": 10646216,
+      "addedAt": "2026-11-16T03:49:24.544Z",
+      "w": 7214,
+      "h": 5699,
+      "src": "images/dieshot/qualcomm/mwiq5jgh-Cloud-AI-100-14.67x20.59x0.jpg",
+      "file": "images/dieshot/qualcomm/mwiq5jgh-Cloud-AI-100-14.67x20.59x0.jpg",
+      "thumb": "images/dieshot/qualcomm/mwiq5jgh-Cloud-AI-100-14.67x20.59x0.thumb.jpg"
+    },
+    {
       "id": "imvsx876rhag7z",
       "title": "Teraflops Reseach Chip",
       "desc": "Intel 65nm",
