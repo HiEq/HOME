@@ -4233,6 +4233,13 @@ function serTrack(s){
     if(last.length <= 120 && /[#$]\s*$/.test(last)){
       SER.promptOk = true;
       SER.keysOn = true;
+      /* 看到提示符就当场对时，不等 500ms 的轮询：
+         byobu 状态栏一重绘，tail 的最后一行就不再是提示符了 */
+      var cfgNow = serCfg();
+      if(cfgNow.clock && SER.clockArmed && !SER.clockDone &&
+         Date.now() - SER.lastKey > 600){
+        serAutoClock();
+      }
     }else{
       SER.promptOk = false;   /* 有别的输出（命令在跑 / 用户正在输入）就不算停在提示符 */
     }
