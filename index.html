@@ -4303,8 +4303,10 @@ function serTick(on){
       SER.keysOn = true;
       serHint('按键输入已解锁。');
     }
+    /* 只要看到 shell 提示符、且用户 0.6 秒没在打字就同步时间；
+       不再要求“终端静默”，否则 byobu 里另一个 pane 一直重绘就永远等不到 */
     if(cfg.clock && SER.clockArmed && !SER.clockDone && SER.promptOk &&
-       now - SER.lastKey > 1500 && now - SER.lastRx > 800){
+       now - SER.lastKey > 600){
       serAutoClock();
     }
     /* 不自动往 shell 里敲任何尺寸命令 */
