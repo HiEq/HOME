@@ -23,6 +23,23 @@
   },
   "items": [
     {
+      "id": "imwushi7qr6w27",
+      "coll": "dieshot",
+      "title": "Navi48 1",
+      "desc": "TSMC N4",
+      "tags": [
+        "AMD"
+      ],
+      "name": "Navi48_1.jpg",
+      "size": 11539019,
+      "addedAt": "2026-11-24T14:27:56.150Z",
+      "w": 8176,
+      "h": 4404,
+      "src": "images/dieshot/amd/mwushi7q-Navi48_1.jpg",
+      "file": "images/dieshot/amd/mwushi7q-Navi48_1.jpg",
+      "thumb": "images/dieshot/amd/mwushi7q-Navi48_1.thumb.jpg"
+    },
+    {
       "id": "imwiq5jggch4mq",
       "title": "Cloud AI 100",
       "desc": "TSMC 7nm",
